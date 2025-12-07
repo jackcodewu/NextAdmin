@@ -1,0 +1,71 @@
+# 编译生成目录
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# 环境变量和敏感配置
+.env
+*.env
+!.env.example
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.json
+!appsettings.json
+
+# 用户机密
+secrets.json
+user-secrets.json
+
+# IDE 配置文件
+.vs/           # Visual Studio 工作区配置（忽略所有.vs目录）
+**/.vs/        # 忽略任何位置的.vs目录
+/.vs/*          # 根目录下的.vs目录
+*.vs/          # 任何.vs目录
+**/*.vsidx     # 忽略所有Visual Studio索引文件
+**/*.suo       # 忽略所有Visual Studio用户选项文件
+**/*.user      # 忽略所有用户特定设置文件
+**/.vs/**/FileContentIndex/ # 特别忽略FileContentIndex目录
+
+# 编译产物
+*.pdb         # 程序数据库文件
+*.exe         # 可执行文件
+*.dll         # 动态链接库
+*.cache       # 编译缓存
+*.vsmdi       # Visual Studio 测试文件
+
+# NuGet 包和临时文件
+packages/
+.nuget/
+*.nupkg
+
+# 其他 IDE 或工具生成文件
+.idea/        # JetBrains Rider 配置
+*.swp         # Vim 临时文件
+/.vs
+*.js
+*.py
+*.ps1
+*.bat
+*.cmd
+*.csv
+*.xlsx
+**/node_modules/
+**/other_modules/
+**/php_api/
+**/wwwroot/*
+
+# 忽略日志目录
+# 这里的规则会忽略所有名为 logs 的目录，无论其位置如何
+**/logs/**
+
+@logs/
+
+# 忽略开发文档目录
+/mds/
+/scripts
+/docs/
+/src/API/Properties/PublishProfiles/FolderProfile.pubxml.user

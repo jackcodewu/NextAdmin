@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Data\Migrations\**" />
+	  <EmbeddedResource Remove="Data\Migrations\**" />
+	  <None Remove="Data\Migrations\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Data\MongoContext.cs" />
+	  <Compile Remove="Data\MongoRepository.cs" />
+	  <Compile Remove="Repositories\BaseRepository.PagingOptimized.cs" />
+	  <Compile Remove="Repositories\ProductTypeRepository.cs" />
+	  <Compile Remove="Repositories\RgvTaskTrackRepository.cs" />
+	  <Compile Remove="Repositories\RoleRepository.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.7" />
+		
+		
+		<PackageReference Include="System.Text.Json" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="9.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Core\NextAdmin.Core.csproj" />
+		<ProjectReference Include="..\KB0.Log\NextAdmin.Log.csproj" />
+		<ProjectReference Include="..\KB0.Redis\NextAdmin.Redis.csproj" />
+		<!-- 源代码生成器已禁用 - 使用运行时动态生成或标准注册 -->
+		<!-- <ProjectReference Include="..\SourceGenerators\NextAdmin.SourceGenerators.csproj" 
+		                  OutputItemType="Analyzer" 
+		                  ReferenceOutputAssembly="false" /> -->
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,146 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+	
+	<PropertyGroup>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DTOs\ProductTypes\**" />
+    <Compile Remove="PathPlanning\**" />
+    <EmbeddedResource Remove="DTOs\ProductTypes\**" />
+    <EmbeddedResource Remove="PathPlanning\**" />
+    <None Remove="DTOs\ProductTypes\**" />
+    <None Remove="PathPlanning\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="DomainEventHandlers\DeviceDomainEventHandler.cs" />
+    <Compile Remove="DTOs\PagedResultDto.cs" />
+    <Compile Remove="Extensions\CsvToTrackMapImporter.cs" />
+    <Compile Remove="Extensions\VJSFCacheExtensions.cs" />
+    <Compile Remove="Extensions\VJSFExtensions.cs" />
+    <Compile Remove="Interfaces\IProductTypeAppService.cs" />
+    <Compile Remove="Interfaces\IVehicleRadarService.cs" />
+    <Compile Remove="Interfaces\IWxMiniProgramConfigAppService.cs" />
+    <Compile Remove="Services\DataSeeder1.cs" />
+    <Compile Remove="Services\IRoleService.cs" />
+    <Compile Remove="Services\ProductTypeAppService.cs" />
+    <Compile Remove="Services\RgvTaskService.cs" />
+    <Compile Remove="Services\RoleService.cs" />
+    <Compile Remove="Services\VehicleRadarService.cs" />
+    <Compile Remove="Services\WxMiniProgramConfigAppService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="15.0.1" />
+    <PackageReference Include="CsvHelper" Version="33.1.0" />
+	<PackageReference Include="ExcelDataReader" Version="3.7.0" />
+	<PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
+
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="Google.OrTools" Version="9.14.6206" />
+    <PackageReference Include="MediatR" Version="13.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.7" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" />
+	  <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
+	  <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.6" />
+	  <PackageReference Include="System.Drawing.Common" Version="9.0.7" />
+	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.13.0" />
+	  <PackageReference Include="AspNetCore.Identity.Mongo" Version="10.1.0" />
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.7" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.ML" Version="4.0.2" />
+		<PackageReference Include="Microsoft.ML.LightGbm" Version="4.0.2" />
+		<PackageReference Include="Microsoft.ML.OnnxConverter" Version="0.22.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+    <ProjectReference Include="..\Core\NextAdmin.Core.csproj" />
+    <ProjectReference Include="..\KB0.Redis\NextAdmin.Redis.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Data\" />
+	  <Folder Include="DomainEventHandlers\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <!-- 零基础 -->
+	  <None Update="Data\英语单词\常用（零基础）\【公众号：zsxx_xxyg】常用词汇（零基础）.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  
+	  <!-- 小学 -->
+	  <None Update="Data\英语单词\小学\小学.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  
+	  <!-- 初中 -->
+	  <None Update="Data\英语单词\初中\MiddleSchool.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  
+	  <!-- 高中 -->
+	  <None Update="Data\英语单词\高中\CoreHighSchool.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\英语单词\高中\Grade11.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\英语单词\高中\Grade12.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\英语单词\高中\Grade13.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\英语单词\高中\Grade14.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\英语单词\高中\Grade21.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\英语单词\高中\Grade22.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\英语单词\高中\Grade23.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\英语单词\高中\Grade24.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  
+	  <!-- 大学 -->
+	  <None Update="Data\英语单词\大学\UniversityLevel4.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\英语单词\大学\UniversityLevel6.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  
+	  <!-- 考研 -->
+	  <None Update="Data\英语单词\考研\PEE.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  
+	  <!-- 雅思 -->
+	  <None Update="Data\英语单词\雅思\IELTS.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\英语单词\雅思\【公众号：zsxx_xxyg】雅思IELTS.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+</Project> 

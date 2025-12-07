@@ -1,0 +1,30 @@
+namespace NextAdmin.Shared.Enums
+{
+    public enum EventType
+    {
+        System,
+        Vehicle,
+        Station,
+        Task,
+        Error,
+        TaskCancelled,
+        TaskCompleted,
+        TaskAssigned,
+        TaskResumed,
+        CommunicationFailed,
+        TaskCleared,
+        StatusChanged,
+        SensorAdded,
+        SensorRemoved,
+        SensorCalibrated,
+        FaultUpdated,
+        FaultDetected,
+        FaultResolved,
+        FaultsCleared,
+        TaskStarted,
+        TaskPaused,
+        CommunicationLost,
+        CommunicationRestored,
+        PathAssigned
+    }
+} 

@@ -1,0 +1,67 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Domain\Entities\Devices\bak\**" />
+    <Compile Remove="Domain\Services\**" />
+    <Compile Remove="Domain\Settings\**" />
+    <Compile Remove="Domain\Validators\**" />
+    <EmbeddedResource Remove="Domain\Entities\Devices\bak\**" />
+    <EmbeddedResource Remove="Domain\Services\**" />
+    <EmbeddedResource Remove="Domain\Settings\**" />
+    <EmbeddedResource Remove="Domain\Validators\**" />
+    <None Remove="Domain\Entities\Devices\bak\**" />
+    <None Remove="Domain\Services\**" />
+    <None Remove="Domain\Settings\**" />
+    <None Remove="Domain\Validators\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Domain\Entities\Devices\DeviceArea.cs" />
+    <Compile Remove="Domain\Entities\Devices\GenericRadar.cs" />
+    <Compile Remove="Domain\Entities\Devices\HinsonDE4311.cs" />
+    <Compile Remove="Domain\Entities\Devices\HinsonSE0533.cs" />
+    <Compile Remove="Domain\Entities\Devices\Product.cs" />
+    <Compile Remove="Domain\Entities\Devices\ProductType.cs" />
+    <Compile Remove="Domain\Entities\Devices\PZNetPowerMeter.cs" />
+    <Compile Remove="Domain\Entities\User.cs" />
+    <Compile Remove="Domain\Interfaces\Repositories\IProductTypeRepository.cs" />
+    <Compile Remove="Domain\Interfaces\Repositories\IRoleRepository.cs" />
+    <Compile Remove="Domain\Interfaces\Repositories\ISchedulingTaskLineRepository.cs" />
+    <Compile Remove="Domain\Interfaces\Repositories\IUserRepository.cs" />
+    <Compile Remove="Domain\Interfaces\Services\IMonitoringService.cs" />
+    <Compile Remove="Domain\Interfaces\Services\ITrackSchedulerService.cs" />
+    <Compile Remove="Domain\Interfaces\Services\IVehicleSchedulerService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.Identity.Mongo" Version="10.1.0" />
+    <PackageReference Include="MediatR" Version="13.0.0" />
+	
+	
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.7" />
+	
+	
+    <PackageReference Include="System.Text.Json" Version="9.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common\NextAdmin.Common.csproj" />
+    <ProjectReference Include="..\Shared\NextAdmin.Shared.csproj" />
+    <!-- 源代码生成器已禁用 - 使用运行时动态生成或标准注册 -->
+    <!-- <ProjectReference Include="..\SourceGenerators\NextAdmin.SourceGenerators.csproj" 
+                      OutputItemType="Analyzer" 
+                      ReferenceOutputAssembly="false" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+
+</Project> 
