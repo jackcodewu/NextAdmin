@@ -26,11 +26,11 @@ public sealed class AuthController : ControllerBase
         _redisService = redisService;
     }
     /// <summary>
-    /// 用户登录
+    /// User login
     /// </summary>
-    /// <param name="request">登录请求</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>认证响应</returns>
+    /// <param name="request">Login request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Authentication response</returns>
     [HttpPost("login")]
     [ProducesResponseType<AuthResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -47,18 +47,18 @@ public sealed class AuthController : ControllerBase
         
         //if (result.Success)
         //{
-        //    // 记录操作日志
+        //    // Log operation
         //    await _systemLogService.LogOperationAsync(
         //        "AuthController.Login",
-        //        $"用户登录: {request.UserName}"
+        //        $"User login: {request.UserName}"
         //    );
         //}
         //else
         //{
-        //    // 记录错误日志
+        //    // Log error
         //    await _systemLogService.LogErrorAsync(
         //        "AuthController.Login",
-        //        $"用户登录失败: {request.UserName}",
+        //        $"User login failed: {request.UserName}",
         //        result.Message ?? ""
         //    );
         //}
@@ -67,11 +67,11 @@ public sealed class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// 用户注册
+    /// User registration
     /// </summary>
-    /// <param name="request">注册请求</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>认证响应</returns>
+    /// <param name="request">Registration request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Authentication response</returns>
     [HttpPost("register")]
     [ProducesResponseType<AuthResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -88,18 +88,18 @@ public sealed class AuthController : ControllerBase
         
         //if (result.Success)
         //{
-        //    // 记录操作日志
+        //    // Log operation
         //    await _systemLogService.LogOperationAsync(
         //        "AuthController.Register",
-        //        $"用户注册: {request.UserName}"
+        //        $"User registration: {request.UserName}"
         //    );
         //}
         //else
         //{
-        //    // 记录错误日志
+        //    // Log error
         //    await _systemLogService.LogErrorAsync(
         //        "AuthController.Register",
-        //        $"用户注册失败: {request.UserName}",
+        //        $"User registration failed: {request.UserName}",
         //        result.Message ?? ""
         //    );
         //}
@@ -108,11 +108,11 @@ public sealed class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// 刷新令牌
+    /// Refresh token
     /// </summary>
-    /// <param name="request">刷新令牌请求</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>认证响应</returns>
+    /// <param name="request">Refresh token request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Authentication response</returns>
     [HttpPost("refresh")]
     [ProducesResponseType<AuthResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -131,10 +131,10 @@ public sealed class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// 用户登出
+    /// User logout
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>操作结果</returns>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Operation result</returns>
     [HttpPost("logout")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType<object>(StatusCodes.Status200OK)]
@@ -144,7 +144,7 @@ public sealed class AuthController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
         {
-            return BadRequest(new { message = "无效的用户" });
+            return BadRequest(new { message = "Invalid user" });
         }
 
         var authHeader = Request.Headers["Authorization"].FirstOrDefault();
@@ -180,23 +180,23 @@ public sealed class AuthController : ControllerBase
 
         //if (result)
         //{
-        //    // 记录操作日志
+        //    // Log operation
         //    await _systemLogService.LogOperationAsync(
         //        "AuthController.Logout",
-        //        $"用户登出: UserID={userId}"
+        //        $"User logout: UserID={userId}"
         //    );
         //}
 
         return result
-            ? Ok(new { message = "登出成功" })
-            : BadRequest(new { message = "登出失败" });
+            ? Ok(new { message = "Logout successful" })
+            : BadRequest(new { message = "Logout failed" });
     }
 
     /// <summary>
-    /// 获取当前用户信息
+    /// Get current user information
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户信息</returns>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>User information</returns>
     [HttpGet("userinfo")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType<UserInfo>(StatusCodes.Status200OK)]
@@ -207,22 +207,22 @@ public sealed class AuthController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
         {
-            return BadRequest(new { message = "无效的用户" });
+            return BadRequest(new { message = "Invalid user" });
         }
 
         var userInfo = await _authService.GetUserInfoAsync(userId, cancellationToken);
         
         return userInfo is not null 
             ? Ok(userInfo) 
-            : NotFound(new { message = "用户不存在" });
+            : NotFound(new { message = "User does not exist" });
     }
 
     /// <summary>
-    /// 修改密码
+    /// Change password
     /// </summary>
-    /// <param name="request">修改密码请求</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>操作结果</returns>
+    /// <param name="request">Change password request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Operation result</returns>
     [HttpPost("change-password")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType<object>(StatusCodes.Status200OK)]
@@ -239,39 +239,39 @@ public sealed class AuthController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
         {
-            return BadRequest(new { message = "无效的用户" });
+            return BadRequest(new { message = "Invalid user" });
         }
 
         var result = await _authService.ChangePasswordAsync(userId, request, cancellationToken);
         
         //if (result)
         //{
-        //    // 记录操作日志
+        //    // Log operation
         //    await _systemLogService.LogOperationAsync(
         //        "AuthController.ChangePassword",
-        //        $"修改密码: UserID={userId}"
+        //        $"Password changed: UserID={userId}"
         //    );
         //}
         //else
         //{
-        //    // 记录错误日志
+        //    // Log error
         //    await _systemLogService.LogErrorAsync(
         //        "AuthController.ChangePassword",
-        //        $"修改密码失败: UserID={userId}",
-        //        "密码修改失败"
+        //        $"Password change failed: UserID={userId}",
+        //        "Password change failed"
         //    );
         //}
         
         return result 
-            ? Ok(new { message = "密码修改成功" })
-            : BadRequest(new { message = "密码修改失败" });
+            ? Ok(new { message = "Password changed successfully" })
+            : BadRequest(new { message = "Password change failed" });
     }
 
     /// <summary>
-    /// 验证TOKEN是否有效（从Redis中验证）
+    /// Validate if TOKEN is valid (verify from Redis)
     /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>TOKEN验证结果</returns>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>TOKEN validation result</returns>
     [HttpGet("validate-token")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType<object>(StatusCodes.Status200OK)]
@@ -281,30 +281,30 @@ public sealed class AuthController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
         {
-            return BadRequest(new { message = "无效的用户" });
+            return BadRequest(new { message = "Invalid user" });
         }
 
-        // 从请求头中获取TOKEN
+        // Get TOKEN from request header
         var authHeader = Request.Headers["Authorization"].FirstOrDefault();
         if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
         {
-            return BadRequest(new { message = "缺少有效的TOKEN" });
+            return BadRequest(new { message = "Missing valid TOKEN" });
         }
 
         var token = authHeader.Substring("Bearer ".Length).Trim();
         if (string.IsNullOrEmpty(token))
         {
-            return BadRequest(new { message = "缺少有效的TOKEN" });
+            return BadRequest(new { message = "Missing valid TOKEN" });
         }
 
         if (!TryGetTokenId(token, out var tokenId))
         {
-            return BadRequest(new { message = "TOKEN验证失败", valid = false });
+            return BadRequest(new { message = "TOKEN validation failed", valid = false });
         }
 
         if (!TryGetTokenExpiry(token, out var expiresAt))
         {
-            return BadRequest(new { message = "TOKEN验证失败", valid = false });
+            return BadRequest(new { message = "TOKEN validation failed", valid = false });
         }
 
         if (!string.IsNullOrEmpty(tokenId))
@@ -312,28 +312,28 @@ public sealed class AuthController : ControllerBase
             var revokedMarker = await _redisService.GetStringAsync($"auth:token:revoked:{tokenId}");
             if (!string.IsNullOrEmpty(revokedMarker))
             {
-                return BadRequest(new { message = "TOKEN已失效", valid = false });
+                return BadRequest(new { message = "TOKEN has been revoked", valid = false });
             }
         }
 
         if (expiresAt <= DateTime.UtcNow)
         {
-            return BadRequest(new { message = "TOKEN已过期", valid = false });
+            return BadRequest(new { message = "TOKEN has expired", valid = false });
         }
 
         var isValid = await _authService.ValidateTokenFromRedisAsync(userId, token, cancellationToken);
         if (isValid)
         {
-            return Ok(ApiResponse<object>.SuccessResponse(new { valid = true }, "TOKEN验证成功"));
+            return Ok(ApiResponse<object>.SuccessResponse(new { valid = true }, "TOKEN validation successful"));
         }
 
         var restored = await _authService.StoreTokenInRedisAsync(userId, token, expiresAt, cancellationToken);
         if (!restored)
         {
-            return BadRequest(new { message = "TOKEN验证失败", valid = false });
+            return BadRequest(new { message = "TOKEN validation failed", valid = false });
         }
 
-        return Ok(ApiResponse<object>.SuccessResponse(new { valid = true, restored = true, expiresAt }, "TOKEN验证成功"));
+        return Ok(ApiResponse<object>.SuccessResponse(new { valid = true, restored = true, expiresAt }, "TOKEN validation successful"));
     }
 
     private static bool TryGetTokenExpiry(string token, out DateTime expiresAt)

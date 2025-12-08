@@ -1,37 +1,37 @@
 namespace NextAdmin.Redis;
 
 /// <summary>
-/// Redis配置选项
+/// Redis configuration options
 /// </summary>
 public class RedisOptions
 {
     /// <summary>
-    /// Redis服务器地址
+    /// Redis server address
     /// </summary>
     public string ConnectionString { get; set; } = "localhost:6379";
 
     /// <summary>
-    /// 默认数据库索引
+    /// Default database index
     /// </summary>
     public int DefaultDatabase { get; set; }
 
     /// <summary>
-    /// 连接超时时间（毫秒）
+    /// Connection timeout (milliseconds)
     /// </summary>
     public int ConnectTimeout { get; set; } = 5000;
 
     /// <summary>
-    /// 同步超时时间（毫秒）
+    /// Sync timeout (milliseconds)
     /// </summary>
     public int SyncTimeout { get; set; } = 5000;
 
     /// <summary>
-    /// 命令超时时间（毫秒）
+    /// Command timeout (milliseconds)
     /// </summary>
     public int CommandTimeout { get; set; } = 5000;
 
     /// <summary>
-    /// 异步超时时间（毫秒）
+    /// Async timeout (milliseconds)
     /// </summary>
     public int AsyncTimeout { get; set; } = 5000;
 
@@ -39,32 +39,32 @@ public class RedisOptions
     public TimeSpan DefaultExpiry { get; set; }=TimeSpan.FromMinutes(30);
 
     /// <summary>
-    /// 连接池大小
+    /// Connection pool size
     /// </summary>
     public int PoolSize { get; set; } = 50;
 
     /// <summary>
-    /// 配置检查间隔（秒）
+    /// Config check interval (seconds)
     /// </summary>
     public int ConfigCheckSeconds { get; set; } = 60;
 
     /// <summary>
-    /// 是否启用SSL
+    /// Whether to enable SSL
     /// </summary>
     public bool UseSsl { get; set; }
 
     /// <summary>
-    /// 密码
+    /// Password
     /// </summary>
     public string? Password { get; set; }
 
     /// <summary>
-    /// 客户端名称
+    /// Client name
     /// </summary>
     public string? ClientName { get; set; }
 
     /// <summary>
-    /// Redis版本
+    /// Redis version
     /// </summary>
     public string Version { get; set; } = "6.0";
     public int ResponseTimeout { get; internal set; }

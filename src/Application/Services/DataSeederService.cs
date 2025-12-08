@@ -15,7 +15,7 @@ using static NextAdmin.Application.Constants.PermissionsDefine;
 namespace NextAdmin.Application.Services
 {
     /// <summary>
-    /// 数据种子服务 - 初始化系统基础数据
+    /// Data Seeder Service - Initialize system base data
     /// </summary>
     public class DataSeederService
     {
@@ -139,7 +139,7 @@ namespace NextAdmin.Application.Services
                 }
             }
 
-            // 移除需要删除的权限
+            // Remove permissions marked for deletion
             foreach (var permission in permissionsToRemove)
             {
                 permissionsToCreate.Remove(permission);
@@ -300,7 +300,7 @@ namespace NextAdmin.Application.Services
                     }
                 }
 
-                // 创建默认用户 zhongkai001
+                // Create default user zhongkai001
                 LogHelper.Info("--> Seeding default user zhongkai001...");
                 const string zhongkaiUserName = "zhongkai001";
                 const string zhongkaiEmail = "zhongkai001@kb0.com";
@@ -313,11 +313,11 @@ namespace NextAdmin.Application.Services
                     {
                         UserName = zhongkaiUserName,
                         Email = zhongkaiEmail,
-                        FirstName = "中凯",
-                        LastName = "用户",
-                        DisplayName = "中凯默认用户",
-                        Department = "技术部",
-                        Position = "技术员",
+                        FirstName = "Zhongkai",
+                        LastName = "User",
+                        DisplayName = "Zhongkai Default User",
+                        Department = "Technical Department",
+                        Position = "Technician",
                         IsActive = true,
                     };
 

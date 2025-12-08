@@ -12,8 +12,8 @@ using MongoDB.Driver;
 namespace NextAdmin.Infrastructure.Extensions
 {
     /// <summary>
-    /// 动态仓储生成器
-    /// 在运行时动态生成缺失的仓储实现类
+    /// Dynamic repository generator
+    /// Dynamically generates missing repository implementation classes at runtime
     /// </summary>
     public static class DynamicRepositoryGenerator
     {
@@ -22,7 +22,7 @@ namespace NextAdmin.Infrastructure.Extensions
 
         static DynamicRepositoryGenerator()
         {
-            // 创建动态程序集
+            // Create dynamic assembly
             var assemblyName = new AssemblyName("DynamicRepositories");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(
                 assemblyName, 
@@ -32,11 +32,11 @@ namespace NextAdmin.Infrastructure.Extensions
         }
 
         /// <summary>
-        /// 为实体动态生成仓储类
+        /// Dynamically generate repository type for entity
         /// </summary>
         public static Type GenerateRepositoryType(Type entityType, Type interfaceType)
         {
-            // 检查缓存
+            // Check cache
             if (_generatedTypes.TryGetValue(entityType, out var cachedType))
             {
                 return cachedType;
@@ -44,36 +44,36 @@ namespace NextAdmin.Infrastructure.Extensions
 
             var repositoryName = $"{entityType.Name}Repository_Dynamic";
             
-            Console.WriteLine($"[DynamicRepositoryGenerator] 🔧 动态生成: {repositoryName}");
+            Console.WriteLine($"[DynamicRepositoryGenerator] 🔧 Dynamically generating: {repositoryName}");
 
-            // 创建类型构建器
+            // Create type builder
             var typeBuilder = _moduleBuilder.DefineType(
                 repositoryName,
                 TypeAttributes.Public | TypeAttributes.Class,
                 typeof(BaseRepository<>).MakeGenericType(entityType));
 
-            // 实现接口
+            // Implement interface
             typeBuilder.AddInterfaceImplementation(interfaceType);
 
-            // 生成构造函数
+            // Generate constructor
             GenerateConstructor(typeBuilder, entityType);
 
-            // 实现接口方法
+            // Implement interface methods
             GenerateInterfaceMethods(typeBuilder, interfaceType, entityType);
 
-            // 创建类型
+            // Create type
             var generatedType = typeBuilder.CreateType();
             
-            // 缓存生成的类型
+            // Cache generated type
             _generatedTypes[entityType] = generatedType!;
 
-            Console.WriteLine($"[DynamicRepositoryGenerator] ✅ 已生成: {repositoryName}");
+            Console.WriteLine($"[DynamicRepositoryGenerator] ✅ Generated: {repositoryName}");
 
             return generatedType!;
         }
 
         /// <summary>
-        /// 生成构造函数
+        /// Generate constructor
         /// </summary>
         private static void GenerateConstructor(TypeBuilder typeBuilder, Type entityType)
         {
@@ -85,9 +85,9 @@ namespace NextAdmin.Infrastructure.Extensions
                 null);
 
             if (baseConstructor == null)
-                throw new InvalidOperationException($"找不到 BaseRepository<{entityType.Name}> 的构造函数");
+                throw new InvalidOperationException($"Cannot find constructor of BaseRepository<{entityType.Name}>");
 
-            // 定义构造函数：public {Repository}(IMongoDatabase database, IRedisService redisService)
+            // Define constructor: public {Repository}(IMongoDatabase database, IRedisService redisService)
             var constructor = typeBuilder.DefineConstructor(
                 MethodAttributes.Public,
                 CallingConventions.Standard,
@@ -95,7 +95,7 @@ namespace NextAdmin.Infrastructure.Extensions
 
             var ilGenerator = constructor.GetILGenerator();
 
-            // 调用基类构造函数
+            // Call base class constructor
             ilGenerator.Emit(OpCodes.Ldarg_0); // this
             ilGenerator.Emit(OpCodes.Ldarg_1); // database
             ilGenerator.Emit(OpCodes.Ldarg_2); // redisService
@@ -104,13 +104,13 @@ namespace NextAdmin.Infrastructure.Extensions
         }
 
         /// <summary>
-        /// 实现接口方法（委托给基类）
+        /// Implement interface methods (delegate to base class)
         /// </summary>
         private static void GenerateInterfaceMethods(TypeBuilder typeBuilder, Type interfaceType, Type entityType)
         {
             var baseRepositoryType = typeof(IBaseRepository<>).MakeGenericType(entityType);
             
-            // 获取接口中定义的所有方法（排除从 IBaseRepository 继承的）
+            // Get all methods defined in interface (excluding those inherited from IBaseRepository)
             var methods = interfaceType.GetMethods()
                 .Where(m => !baseRepositoryType.GetMethods().Any(bm => 
                     bm.Name == m.Name && 
@@ -124,14 +124,14 @@ namespace NextAdmin.Infrastructure.Extensions
         }
 
         /// <summary>
-        /// 生成单个方法实现
+        /// Generate single method implementation
         /// </summary>
         private static void GenerateMethod(TypeBuilder typeBuilder, MethodInfo methodInfo, Type entityType)
         {
             var parameters = methodInfo.GetParameters();
             var parameterTypes = parameters.Select(p => p.ParameterType).ToArray();
 
-            // 定义方法
+            // Define method
             var methodBuilder = typeBuilder.DefineMethod(
                 methodInfo.Name,
                 MethodAttributes.Public | MethodAttributes.Virtual,
@@ -140,19 +140,19 @@ namespace NextAdmin.Infrastructure.Extensions
 
             var ilGenerator = methodBuilder.GetILGenerator();
 
-            // 生成方法体：抛出 NotImplementedException
-            // 这样可以运行，但调用自定义方法时会提示未实现
+            // Generate method body: throw NotImplementedException
+            // This allows it to run, but custom method calls will prompt as not implemented
             var notImplementedCtor = typeof(NotImplementedException).GetConstructor(
                 new[] { typeof(string) });
 
             ilGenerator.Emit(OpCodes.Ldstr, 
-                $"方法 {methodInfo.Name} 需要手动实现。请创建 {entityType.Name}Repository 类。");
+                $"Method {methodInfo.Name} needs to be manually implemented. Please create {entityType.Name}Repository class.");
             ilGenerator.Emit(OpCodes.Newobj, notImplementedCtor!);
             ilGenerator.Emit(OpCodes.Throw);
         }
 
         /// <summary>
-        /// 检查方法签名是否匹配
+        /// Check if method signatures match
         /// </summary>
         private static bool MethodSignaturesMatch(MethodInfo method1, MethodInfo method2)
         {
@@ -175,7 +175,7 @@ namespace NextAdmin.Infrastructure.Extensions
         }
 
         /// <summary>
-        /// 自动注册所有仓储（支持动态生成）
+        /// Auto-register all repositories (supports dynamic generation)
         /// </summary>
         public static IServiceCollection AddAutoRepositoriesWithDynamicGeneration(
             this IServiceCollection services,
@@ -190,7 +190,7 @@ namespace NextAdmin.Infrastructure.Extensions
                 };
             }
 
-            // 查找所有继承 AggregateRoot 的实体类
+            // Find all entity classes inheriting AggregateRoot
             var entityTypes = assemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type =>
@@ -200,21 +200,21 @@ namespace NextAdmin.Infrastructure.Extensions
                     typeof(AggregateRoot).IsAssignableFrom(type))
                 .ToList();
 
-            Console.WriteLine($"[DynamicRepositoryGenerator] 发现 {entityTypes.Count} 个实体类");
+            Console.WriteLine($"[DynamicRepositoryGenerator] Found {entityTypes.Count} entity classes");
 
             foreach (var entityType in entityTypes)
             {
                 RegisterRepositoryWithDynamicGeneration(services, entityType, assemblies);
             }
 
-            // 注册通用仓储
+            // Register generic repository
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
             return services;
         }
 
         /// <summary>
-        /// 注册单个仓储（支持动态生成）
+        /// Register single repository (supports dynamic generation)
         /// </summary>
         private static void RegisterRepositoryWithDynamicGeneration(
             IServiceCollection services,
@@ -224,14 +224,14 @@ namespace NextAdmin.Infrastructure.Extensions
             var repositoryInterfaceName = $"I{entityType.Name}Repository";
             var repositoryImplementationName = $"{entityType.Name}Repository";
 
-            // 查找仓储接口
+            // Find repository interface
             var repositoryInterface = assemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .FirstOrDefault(type =>
                     type.IsInterface &&
                     type.Name == repositoryInterfaceName);
 
-            // 查找仓储实现类
+            // Find repository implementation class
             var repositoryImplementation = assemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .FirstOrDefault(type =>
@@ -241,47 +241,47 @@ namespace NextAdmin.Infrastructure.Extensions
 
             if (repositoryInterface != null && repositoryImplementation != null)
             {
-                // 情况 1：接口和实现类都存在
+                // Case 1: Both interface and implementation class exist
                 if (repositoryInterface.IsAssignableFrom(repositoryImplementation))
                 {
                     services.AddScoped(repositoryInterface, repositoryImplementation);
-                    Console.WriteLine($"[DynamicRepositoryGenerator] ✅ 已注册: {repositoryInterface.Name} -> {repositoryImplementation.Name}");
+                    Console.WriteLine($"[DynamicRepositoryGenerator] ✅ Registered: {repositoryInterface.Name} -> {repositoryImplementation.Name}");
                 }
             }
             else if (repositoryInterface != null && repositoryImplementation == null)
             {
-                // 情况 2：接口存在但实现类不存在 → 动态生成
+                // Case 2: Interface exists but implementation class doesn't → dynamically generate
                 try
                 {
                     var dynamicType = GenerateRepositoryType(entityType, repositoryInterface);
                     services.AddScoped(repositoryInterface, dynamicType);
-                    Console.WriteLine($"[DynamicRepositoryGenerator] 🔧 动态生成并注册: {repositoryInterface.Name} -> {dynamicType.Name}");
+                    Console.WriteLine($"[DynamicRepositoryGenerator] 🔧 Dynamically generated and registered: {repositoryInterface.Name} -> {dynamicType.Name}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[DynamicRepositoryGenerator] ❌ 动态生成失败: {repositoryInterface.Name} - {ex.Message}");
+                    Console.WriteLine($"[DynamicRepositoryGenerator] ❌ Dynamic generation failed: {repositoryInterface.Name} - {ex.Message}");
                     
-                    // 回退到泛型仓储
+                    // Fallback to generic repository
                     var baseRepositoryInterface = typeof(IBaseRepository<>).MakeGenericType(entityType);
                     var baseRepositoryImplementation = typeof(BaseRepository<>).MakeGenericType(entityType);
                     
                     if (!services.Any(sd => sd.ServiceType == baseRepositoryInterface))
                     {
                         services.AddScoped(baseRepositoryInterface, baseRepositoryImplementation);
-                        Console.WriteLine($"[DynamicRepositoryGenerator] 📦 回退到泛型仓储: IBaseRepository<{entityType.Name}>");
+                        Console.WriteLine($"[DynamicRepositoryGenerator] 📦 Fallback to generic repository: IBaseRepository<{entityType.Name}>");
                     }
                 }
             }
             else
             {
-                // 情况 3：没有自定义接口 → 使用泛型仓储
+                // Case 3: No custom interface → use generic repository
                 var baseRepositoryInterface = typeof(IBaseRepository<>).MakeGenericType(entityType);
                 var baseRepositoryImplementation = typeof(BaseRepository<>).MakeGenericType(entityType);
 
                 if (!services.Any(sd => sd.ServiceType == baseRepositoryInterface))
                 {
                     services.AddScoped(baseRepositoryInterface, baseRepositoryImplementation);
-                    Console.WriteLine($"[DynamicRepositoryGenerator] 📦 使用泛型仓储: IBaseRepository<{entityType.Name}>");
+                    Console.WriteLine($"[DynamicRepositoryGenerator] 📦 Use generic repository: IBaseRepository<{entityType.Name}>");
                 }
             }
         }

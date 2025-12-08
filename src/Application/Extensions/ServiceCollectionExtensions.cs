@@ -22,22 +22,22 @@ namespace NextAdmin.Application.Extensions
             // Register HTTP client factory
             services.AddHttpClient();
 
-            // 注册MediatR
+            // Register MediatR
             services.AddMediatR(cfg => {
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             });
 
-            // 🚀 自动注册所有应用服务(扫描继承 AggregateRoot 的实体)
+            // 🚀 Auto-register all application services (scan entities inheriting AggregateRoot)
             services.AddAutoAppServices(generatePartialClasses: true);
 
-            // 手动注册特殊服务（不遵循自动注册规则的服务）
+            // Manually register special services (services that don't follow auto-registration rules)
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ICaptchaService, CaptchaService>();
-            services.AddScoped<DatabaseMigrationService>();
+        
             services.AddScoped<DataSeederService>();
 
 #if DEBUG
-            // 调试模式下打印注册信息
+            // Print registration info in debug mode
             services.PrintRegisteredAppServices();
 #endif
 

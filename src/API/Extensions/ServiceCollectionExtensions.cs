@@ -3,22 +3,22 @@ using NextAdmin.Application.Interfaces;
 namespace NextAdmin.API.Extensions
 {
     /// <summary>
-    /// 服务集合扩展类
+    /// Service collection extension class
     /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// 添加RGV实时通信服务
+        /// Add RGV real-time communication service
         /// </summary>
         public static IServiceCollection AddRgvRealtimeCommunication(this IServiceCollection services, IConfiguration configuration)
         {
-            // 配置SignalR服务
+            // Configure SignalR service
             services.AddSignalR(options =>
             {
-                // 从配置文件读取设置
+                // Read settings from configuration file
                 var signalRConfig = configuration.GetSection("SignalR:HubOptions");
                 
-                // 设置超时
+                // Set timeouts
                 options.ClientTimeoutInterval = TimeSpan.FromSeconds(
                     signalRConfig.GetValue<int>("ClientTimeoutInterval", 30));
                 
@@ -28,11 +28,11 @@ namespace NextAdmin.API.Extensions
                 options.HandshakeTimeout = TimeSpan.FromSeconds(
                     signalRConfig.GetValue<int>("HandshakeTimeout", 15));
                 
-                // 设置最大并行调用数
+                // Set maximum parallel calls
                 options.MaximumParallelInvocationsPerClient = 
                     signalRConfig.GetValue<int>("MaximumParallelInvocationsPerClient", 1);
                 
-                // 启用详细错误信息
+                // Enable detailed error information
                 options.EnableDetailedErrors = 
                     signalRConfig.GetValue<bool>("EnableDetailedErrors", false);
             });
@@ -50,12 +50,12 @@ namespace NextAdmin.API.Extensions
                 })
                 .AddJsonOptions(options =>
                 {
-                    // 统一 DateTime 输出格式
+                    // Unified DateTime output format
                     options.JsonSerializerOptions.Converters.Add(new NextAdmin.API.Extensions.Json.DateTimeConverter("yyyy-MM-dd HH:mm:ss"));
                     options.JsonSerializerOptions.Converters.Add(new NextAdmin.API.Extensions.Json.NullableDateTimeConverter("yyyy-MM-dd HH:mm:ss"));
                 });
 
-            // 注册
+            // Register
             services.AddControllers(options =>
             {
                 options.Conventions.Add(new GenericControllerRouteConvention());
@@ -65,32 +65,32 @@ namespace NextAdmin.API.Extensions
         }
         public static IServiceCollection AddBaseController(this IServiceCollection services)
         {
-            // 注册 FeatureProvider
+            // Register FeatureProvider
             services.AddControllers()
                 .PartManager.FeatureProviders
                 .Add(new ControllerFeatureProvider());
 
-            // 添加服务
+            // Add services
             services.AddControllers(options =>
             {
-                // 添加动态路由约定
+                // Add dynamic routing convention
                 options.Conventions.Add(new ControllerRouteConvention());
-                // 添加动态授权约定
+                // Add dynamic authorization convention
                 options.Conventions.Add(new ActionAuthorizeConvention());
 
             }).ConfigureApplicationPartManager(manager =>
             {
-                // **关键修复**: 将 Application 程序集手动添加为应用部件，以确保其内部的服务能被发现
+                // **Critical fix**: Manually add Application assembly as application part to ensure its internal services can be discovered
                 manager.ApplicationParts.Add(new Microsoft.AspNetCore.Mvc.ApplicationParts.AssemblyPart(typeof(IAppService<,,,,,>).Assembly));
 
-                //// 添加动态控制器特性提供程序
+                //// Add dynamic controller feature provider
                 //manager.FeatureProviders.Add(new ControllerFeatureProvider());
             });
             return services;
         }
 
         /// <summary>
-        /// 配置CORS策略
+        /// Configure CORS policy
         /// </summary>
         public static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration configuration)
         {
@@ -104,7 +104,7 @@ namespace NextAdmin.API.Extensions
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials()
-                          .SetIsOriginAllowed(_ => true); // 在开发环境中允许所有来源，包括localhost不同端口
+                          .SetIsOriginAllowed(_ => true); // Allow all origins in development environment, including localhost different ports
                 });
             });
 

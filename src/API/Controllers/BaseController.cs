@@ -13,7 +13,7 @@ using System.Security.Claims;
 namespace NextAdmin.API.Controllers
 {
     /// <summary>
-    /// 基本控制器
+    /// Base controller
     /// </summary>
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class BaseController<TEntity, TBaseDto, TCreateDto, TUpdateDto, TQueryDto, TBasesDto> : ControllerBase
@@ -27,7 +27,7 @@ namespace NextAdmin.API.Controllers
         protected readonly IAppService<TEntity, TBaseDto, TCreateDto, TUpdateDto, TQueryDto, TBasesDto> _service;
 
         /// <summary>
-        /// 当前登录用户Id
+        /// Current logged-in user ID
         /// </summary>
     protected string CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier)
                           ?? User.FindFirstValue("sub")
@@ -38,7 +38,7 @@ namespace NextAdmin.API.Controllers
             _service = service;
         }
         /// <summary>
-        /// 新增DTO
+        /// Create DTO
         /// </summary>
         [HttpPost]
         public virtual async Task<IActionResult> CreateAsync([FromBody] TCreateDto createDto)
@@ -48,19 +48,19 @@ namespace NextAdmin.API.Controllers
             {
                 var createdDto = await _service.AddAsync(createDto);
                 if (createdDto == null)
-                    return BadRequest(ApiResponse<object>.ErrorResponse("400", "操作失败"));
+                    return BadRequest(ApiResponse<object>.ErrorResponse("400", "Operation failed"));
 
-                return Ok(ApiResponse<TBaseDto>.SuccessResponse(createdDto, "添加成功"));
+                return Ok(ApiResponse<TBaseDto>.SuccessResponse(createdDto, "Added successfully"));
             }
             catch (Exception ex)
             {
                 //var userMsg = ChineseMessageExtractor.Extract(ex);
-                return Ok(ApiResponse<object>.ErrorResponse("400", "操作失败,请检测提交的数据是否符合规范或是否重复"));
+                return Ok(ApiResponse<object>.ErrorResponse("400", "Operation failed, please check if the submitted data is valid or duplicated"));
             }
         }
 
         /// <summary>
-        /// 更新DTO
+        /// Update DTO
         /// </summary>
         [HttpPut("{id}")]
         public virtual async Task<IActionResult> UpdateAsync(string id, [FromBody] TUpdateDto updateDto)
@@ -77,29 +77,29 @@ namespace NextAdmin.API.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(ApiResponse<object>.ErrorResponse("400", "操作失败,请检测提交的数据是否符合规范或是否重复"));
+                return Ok(ApiResponse<object>.ErrorResponse("400", "Operation failed, please check if the submitted data is valid or duplicated"));
             }
         }
 
         /// <summary>
-        /// 根据Id获取DTO
+        /// Get DTO by Id
         /// </summary>
         [HttpGet("{id}")]
         public virtual async Task<IActionResult> GetAsync(string id)
         {
             var dto = await _service.GetAsync(id);
             if (dto == null)
-                return Ok(ApiResponse<object>.ErrorResponse("404", "资源未找到"));
-            return Ok(ApiResponse<TBaseDto>.SuccessResponse(dto, "查询成功"));
+                return Ok(ApiResponse<object>.ErrorResponse("404", "Resource not found"));
+            return Ok(ApiResponse<TBaseDto>.SuccessResponse(dto, "Query successful"));
         }
 
         /// <summary>
-        /// 根据条件获取单个DTO
+        /// Get single DTO by conditions
         /// </summary>
         [HttpGet("one")]
         public virtual async Task<IActionResult> GetOneAsync([FromQuery] TQueryDto queryDto)
         {
-            // 如果 queryDto 为 null，创建一个新的实例
+            // If queryDto is null, create a new instance
             if (queryDto == null)
             {
                 queryDto = new TQueryDto();
@@ -107,34 +107,34 @@ namespace NextAdmin.API.Controllers
 
             var dto = await _service.GetOneAsync(queryDto);
             if (dto == null)
-                return Ok(ApiResponse<object>.ErrorResponse("404", "资源未找到"));
-            return Ok(ApiResponse<TBaseDto>.SuccessResponse(dto, "查询成功"));
+                return Ok(ApiResponse<object>.ErrorResponse("404", "Resource not found"));
+            return Ok(ApiResponse<TBaseDto>.SuccessResponse(dto, "Query successful"));
         }
         
         /// <summary>
-        /// 查询分页数据
+        /// Query paged data
         /// </summary>
-        /// <param name="queryDto">查询条件</param>
-        /// <param name="pageNumber">当前页码，默认1</param>
-        /// <param name="pageSize">每页数据量，默认20条记录</param>
+        /// <param name="queryDto">Query conditions</param>
+        /// <param name="pageNumber">Current page number, default 1</param>
+        /// <param name="pageSize">Page size, default 20 records</param>
         /// <param name="sortField"></param>
         /// <param name="isAsc"></param>
         /// <returns></returns>
         [HttpGet("page-list")]
         public virtual async Task<IActionResult> GetListPageAsync([FromQuery] TQueryDto queryDto, int pageNumber = 1, int pageSize = 20, string sortField = "CreateTime", bool isAsc = false)
         {
-            // 如果 queryDto 为 null，创建一个新的实例
+            // If queryDto is null, create a new instance
             if (queryDto == null)
             {
                 queryDto = new TQueryDto();
             }
             
             var pagedResult = await _service.GetListPageAsync(queryDto, pageNumber, pageSize, sortField, isAsc);
-            return Ok(ApiResponse<PagedResultDto<TBasesDto>>.SuccessResponse(pagedResult, "查询成功"));
+            return Ok(ApiResponse<PagedResultDto<TBasesDto>>.SuccessResponse(pagedResult, "Query successful"));
         }
 
         /// <summary>
-        /// 获取所有数据
+        /// Get all data
         /// </summary>
         /// <returns></returns>
 
@@ -142,11 +142,11 @@ namespace NextAdmin.API.Controllers
         public virtual async Task<IActionResult> GetAllAsync()
         {
             var all = await _service.GetAllAsync();
-            return Ok(ApiResponse<List<TBasesDto>>.SuccessResponse(all, "查询成功"));
+            return Ok(ApiResponse<List<TBasesDto>>.SuccessResponse(all, "Query successful"));
         }
 
     /// <summary>
-    /// 获取所有value/lable数据
+    /// Get all value/label data
     /// </summary>
         /// <returns></returns>
         [HttpGet("options")]
@@ -154,11 +154,11 @@ namespace NextAdmin.API.Controllers
         {
             var all = await _service.GetOptionsAsync();
 
-            return Ok(ApiResponse<List<OptionDto>>.SuccessResponse(all, "查询成功"));
+            return Ok(ApiResponse<List<OptionDto>>.SuccessResponse(all, "Query successful"));
         }
 
         /// <summary>
-        /// 获取所有value/lable数据
+        /// Get all value/label data
         /// </summary>
         /// <returns></returns>
         [HttpGet("options-list")]
@@ -166,11 +166,11 @@ namespace NextAdmin.API.Controllers
         {
             var all = await _service.GetOptionsAsync(queryDto, sortField, isAsc);
 
-            return Ok(ApiResponse<List<OptionDto>>.SuccessResponse(all, "查询成功"));
+            return Ok(ApiResponse<List<OptionDto>>.SuccessResponse(all, "Query successful"));
         }
 
         /// <summary>
-        /// 删除
+        /// Delete
         /// </summary>
         [HttpDelete("{id}")]
         public virtual async Task<IActionResult> DeleteAsync(string id)
@@ -187,31 +187,31 @@ namespace NextAdmin.API.Controllers
 } 
 
 /*
-使用示例：
+Usage examples:
 
-1. 根据条件获取单个实体：
-   GET /api/[controller]/one?name=测试名称&isEnabled=true
+1. Get a single entity by conditions:
+   GET /api/[controller]/one?name=test-name&isEnabled=true
 
-2. 根据ID获取实体：
+2. Get entity by ID:
    GET /api/[controller]/123456789012345678901234
 
-3. 分页查询：
+3. Paged query:
    GET /api/[controller]/page-list?pageNumber=1&pageSize=20&sortField=CreateTime&isAsc=false
 
-4. 获取所有实体：
+4. Get all entities:
    GET /api/[controller]/all
 
-5. 获取选项数据：
+5. Get option data:
    GET /api/[controller]/options
 
-6. 创建实体：
+6. Create entity:
    POST /api/[controller]
-   Body: { "name": "测试", "isEnabled": true }
+   Body: { "name": "Test", "isEnabled": true }
 
-7. 更新实体：
+7. Update entity:
    PUT /api/[controller]/123456789012345678901234
-   Body: { "id": "123456789012345678901234", "name": "更新后的名称" }
+   Body: { "id": "123456789012345678901234", "name": "Updated Name" }
 
-8. 删除实体：
+8. Delete entity:
    DELETE /api/[controller]/123456789012345678901234
 */ 

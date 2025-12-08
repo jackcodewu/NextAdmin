@@ -36,11 +36,11 @@ public sealed class AuthService(
         {
 
             if (!request.IsMobile)
-            { // 1. 校验滑动拼图验证码
+            { // 1. Validate sliding puzzle captcha
                 if (string.IsNullOrEmpty(request.CaptchaToken) || string.IsNullOrEmpty(request.CaptchaTrack))
                 {
-                    LogHelper.Warn("登录失败：缺少验证码参数");
-                    return new AuthResponse(false, "请先完成滑动拼图验证");
+                    LogHelper.Warn("Login failed: Missing captcha parameters");
+                    return new AuthResponse(false, "Please complete the sliding puzzle verification");
                 }
                 List<int> trackList;
                 try
@@ -49,8 +49,8 @@ public sealed class AuthService(
                 }
                 catch
                 {
-                    LogHelper.Warn("登录失败：验证码轨迹格式错误");
-                    return new AuthResponse(false, "验证码轨迹格式错误");
+                    LogHelper.Warn("Login failed: Invalid captcha track format");
+                    return new AuthResponse(false, "Invalid captcha track format");
                 }
                 var captchaValid = await _captchaService.VerifyCaptchaAsync(new DTOs.Captcha.CaptchaVerifyDto
                 {
@@ -61,52 +61,52 @@ public sealed class AuthService(
 
                 if (!captchaValid)
                 {
-                    LogHelper.Warn("登录失败：滑动拼图验证码校验未通过");
-                    return new AuthResponse(false, "滑动拼图验证未通过");
+                    LogHelper.Warn("Login failed: Sliding puzzle captcha verification failed");
+                    return new AuthResponse(false, "Sliding puzzle verification failed");
                 }
             }
 
             var user = await userManager.FindByNameAsync(request.UserName);
             if (user is null)
             {
-                LogHelper.Warn("登录失败：用户 {UserName} 不存在", request.UserName);
-                return new AuthResponse(false, "用户名或密码错误");
+                LogHelper.Warn("Login failed: User {UserName} does not exist", request.UserName);
+                return new AuthResponse(false, "Incorrect username or password");
             }
 
             if (!user.IsActive)
             {
-                LogHelper.Warn("登录失败：用户 {UserName} 已被禁用", request.UserName);
-                return new AuthResponse(false, "账户已被禁用");
+                LogHelper.Warn("Login failed: User {UserName} has been disabled", request.UserName);
+                return new AuthResponse(false, "Account has been disabled");
             }
 
             var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, false);
             if (!result.Succeeded)
             {
-                LogHelper.Warn("登录失败：用户 {UserName} 密码错误", request.UserName);
-                return new AuthResponse(false, "用户名或密码错误");
+                LogHelper.Warn("Login failed: Incorrect password for user {UserName}", request.UserName);
+                return new AuthResponse(false, "Incorrect username or password");
             }
 
-            // 更新最后登录时间
+            // Update last login time
             user.LastLoginAt = DateTime.UtcNow;
             await userManager.UpdateAsync(user);
 
-            // 生成 JWT Token
+            // Generate JWT Token
             var token = await GenerateJwtTokenAsync(user, cancellationToken);
             var expiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationInMinutes);
             var userInfo = await GetUserInfoAsync(user.Id.ToString(), cancellationToken);
 
-            // 将TOKEN存储到Redis中
+            // Store TOKEN in Redis
             var tokenStored = await StoreTokenInRedisAsync(user.Id.ToString(), token, expiresAt, cancellationToken);
             if (!tokenStored)
             {
-                LogHelper.Warn("TOKEN存储到Redis失败，但登录继续：{UserName}", request.UserName);
+                LogHelper.Warn("Failed to store TOKEN in Redis, but login continues: {UserName}", request.UserName);
             }
 
-            LogHelper.Info("用户 {UserName} 登录成功", request.UserName);
+            LogHelper.Info("User {UserName} logged in successfully", request.UserName);
 
             return new AuthResponse(
                 true,
-                "登录成功",
+                "Login successful",
                 token,
                 expiresAt,
                 userInfo
@@ -114,8 +114,8 @@ public sealed class AuthService(
         }
         catch (Exception ex)
         {
-            LogHelper.Error(ex, $"登录过程中发生错误：{request.UserName}");
-            return new AuthResponse(false, "登录过程中发生错误");
+            LogHelper.Error(ex, $"An error occurred during login: {request.UserName}");
+            return new AuthResponse(false, "An error occurred during login");
         }
     }
 
@@ -123,21 +123,21 @@ public sealed class AuthService(
     {
         try
         {
-            // 检查用户名是否已存在
+            // Check if username already exists
             var existingUser = await userManager.FindByNameAsync(request.UserName);
             if (existingUser is not null)
             {
-                return new AuthResponse(false, "用户名已存在");
+                return new AuthResponse(false, "Username already exists");
             }
 
-            // 检查邮箱是否已存在
+            // Check if email already exists
             var existingEmail = await userManager.FindByEmailAsync(request.Email);
             if (existingEmail is not null)
             {
-                return new AuthResponse(false, "邮箱已被注册");
+                return new AuthResponse(false, "Email is already registered");
             }
 
-            // 创建新用户
+            // Create new user
             var user = new ApplicationUser
             {
                 UserName = request.UserName,
@@ -155,21 +155,21 @@ public sealed class AuthService(
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                LogHelper.Warn($"注册失败：{request.UserName}, 错误：{errors}");
-                return new AuthResponse(false, $"注册失败: {errors}");
+                LogHelper.Warn($"Registration failed: {request.UserName}, Errors: {errors}");
+                return new AuthResponse(false, $"Registration failed: {errors}");
             }
 
-            // 分配默认角色
+            // Assign default role
             await userManager.AddToRoleAsync(user, "User");
 
-            LogHelper.Info("用户注册成功：{UserName}", request.UserName);
+            LogHelper.Info("User registered successfully: {UserName}", request.UserName);
 
-            return new AuthResponse(true, "注册成功");
+            return new AuthResponse(true, "Registration successful");
         }
         catch (Exception ex)
         {
-            LogHelper.Error(ex, "注册过程中发生错误：{UserName}", request.UserName);
-            return new AuthResponse(false, "注册过程中发生错误");
+            LogHelper.Error(ex, "An error occurred during registration: {UserName}", request.UserName);
+            return new AuthResponse(false, "An error occurred during registration");
         }
     }
 
@@ -188,7 +188,7 @@ public sealed class AuthService(
                 ValidIssuer = _jwtSettings.Issuer,
                 ValidateAudience = true,
                 ValidAudience = _jwtSettings.Audience,
-                ValidateLifetime = false, // 不验证过期时间
+                ValidateLifetime = false, // Do not validate expiration time
                 ClockSkew = TimeSpan.Zero
             };
 
@@ -197,22 +197,22 @@ public sealed class AuthService(
 
             if (string.IsNullOrEmpty(userId))
             {
-                return new AuthResponse(false, "无效的令牌");
+                return new AuthResponse(false, "Invalid token");
             }
 
             var user = await userManager.FindByIdAsync(userId);
             if (user is null || !user.IsActive)
             {
-                return new AuthResponse(false, "用户不存在或已被禁用");
+                return new AuthResponse(false, "User does not exist or has been disabled");
             }
 
-            // 生成新的 JWT Token
+            // Generate new JWT Token
             var newToken = await GenerateJwtTokenAsync(user, cancellationToken);
             var userInfo = await GetUserInfoAsync(user.Id.ToString(), cancellationToken);
 
             return new AuthResponse(
                 true,
-                "令牌刷新成功",
+                "Token refresh successful",
                 newToken,
                 DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationInMinutes),
                 userInfo
@@ -220,8 +220,8 @@ public sealed class AuthService(
         }
         catch (Exception ex)
         {
-           LogHelper.Error(ex, "刷新令牌失败");
-            return new AuthResponse(false, "刷新令牌失败");
+           LogHelper.Error(ex, "Token refresh failed");
+            return new AuthResponse(false, "Token refresh failed");
         }
     }
 
@@ -229,11 +229,11 @@ public sealed class AuthService(
     {
         try
         {
-            // 1) 从请求读取当前 Bearer Token
+            // 1) Read current Bearer Token from request
             var rawAuth = _httpContextAccessor?.HttpContext?.Request?.Headers["Authorization"].FirstOrDefault();
             var token = string.IsNullOrWhiteSpace(rawAuth) ? null : rawAuth.Replace("Bearer ", "");
 
-            // 2) 若能读到 Token，则解析 JTI 与过期时间并写入吊销表（带TTL）
+            // 2) If Token is retrieved, parse JTI and expiration time and add to revocation list (with TTL)
             if (!string.IsNullOrEmpty(token) && TryParseTokenMeta(token, out var jti, out var expiresAtUtc))
             {
                 var ttl = expiresAtUtc - DateTime.UtcNow;
@@ -241,25 +241,25 @@ public sealed class AuthService(
                 {
                     var revokedKey = $"auth:token:revoked:{jti}";
                     await _redisService.SetStringAsync(revokedKey, "1", ttl);
-                    LogHelper.Info($"已写入吊销标记：{revokedKey}，TTL：{ttl}");
+                    LogHelper.Info($"Written revocation marker: {revokedKey}, TTL: {ttl}");
                 }
             }
 
-            // 3) 移除用户在 Redis 中的当前 TOKEN（auth:tokens:{userId} Hash 中的特定 JTI）
+            // 3) Remove user's current TOKEN from Redis (specific JTI in auth:tokens:{userId} Hash)
             var tokenRemoved = await RemoveTokenFromRedisAsync(userId, cancellationToken);
             if (!tokenRemoved)
             {
-                LogHelper.Warn("从Redis移除TOKEN失败，但登出继续：{UserId}", userId);
+                LogHelper.Warn("Failed to remove TOKEN from Redis, but logout continues: {UserId}", userId);
             }
 
-            // 4) 清理 Identity 登录状态（如果使用了）
+            // 4) Clear Identity login state (if used)
             await signInManager.SignOutAsync();
-            LogHelper.Info("用户登出（当前设备）：{UserId}", userId);
+            LogHelper.Info("User logged out (current device): {UserId}", userId);
             return true;
         }
         catch (Exception ex)
         {
-            LogHelper.Error(ex, "登出失败：{UserId}", userId);
+            LogHelper.Error(ex, "Logout failed: {UserId}", userId);
             return false;
         }
     }
@@ -268,17 +268,17 @@ public sealed class AuthService(
         var userId = _httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
         {
-            LogHelper.Warn("登出失败：无法获取当前用户ID");
+            LogHelper.Warn("Logout failed: Unable to get current user ID");
             return false;
         }
 
         try
         {
-            // 1) 从请求读取当前 Bearer Token
+            // 1) Read current Bearer Token from request
             var rawAuth = _httpContextAccessor?.HttpContext?.Request?.Headers["Authorization"].FirstOrDefault();
             var token = string.IsNullOrWhiteSpace(rawAuth) ? null : rawAuth.Replace("Bearer ", "");
 
-            // 2) 若能读到 Token，则解析 JTI 与过期时间并写入吊销表（带TTL）
+            // 2) If Token is retrieved, parse JTI and expiration time and add to revocation list (with TTL)
             if (!string.IsNullOrEmpty(token) && TryParseTokenMeta(token, out var jti, out var expiresAtUtc))
             {
                 var ttl = expiresAtUtc - DateTime.UtcNow;
@@ -286,25 +286,25 @@ public sealed class AuthService(
                 {
                     var revokedKey = $"auth:token:revoked:{jti}";
                     await _redisService.SetStringAsync(revokedKey, "1", ttl);
-                    LogHelper.Info($"已写入吊销标记：{revokedKey}，TTL：{ttl}");
+                    LogHelper.Info($"Written revocation marker: {revokedKey}, TTL: {ttl}");
                 }
             }
 
-            // 3) 移除用户在 Redis 中的当前 TOKEN（auth:tokens:{userId} Hash 中的特定 JTI）
+            // 3) Remove user's current TOKEN from Redis (specific JTI in auth:tokens:{userId} Hash)
             var tokenRemoved = await RemoveTokenFromRedisAsync(userId, cancellationToken);
             if (!tokenRemoved)
             {
-                LogHelper.Warn("从Redis移除TOKEN失败，但登出继续：{UserId}", userId);
+                LogHelper.Warn("Failed to remove TOKEN from Redis, but logout continues: {UserId}", userId);
             }
 
-            // 4) 清理 Identity 登录状态（如果使用了）
+            // 4) Clear Identity login state (if used)
             await signInManager.SignOutAsync();
-            LogHelper.Info("用户登出（当前设备）：{UserId}", userId);
+            LogHelper.Info("User logged out (current device): {UserId}", userId);
             return true;
         }
         catch (Exception ex)
         {
-            LogHelper.Error(ex, "登出失败：{UserId}", userId);
+            LogHelper.Error(ex, "Logout failed: {UserId}", userId);
             return false;
         }
     }
@@ -342,7 +342,7 @@ public sealed class AuthService(
         }
         catch (Exception ex)
         {
-           LogHelper.Error(ex, "获取用户信息失败：{UserId}", userId);
+           LogHelper.Error(ex, "Failed to get user info: {UserId}", userId);
             return null;
         }
     }
@@ -360,30 +360,30 @@ public sealed class AuthService(
             var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
             if (result.Succeeded)
             {
-                LogHelper.Info("用户密码修改成功：{UserName}", user.UserName);
+                LogHelper.Info("User password changed successfully: {UserName}", user.UserName);
                 return true;
             }
 
-            LogHelper.Warn("用户密码修改失败：{UserName}", user.UserName);
+            LogHelper.Warn("User password change failed: {UserName}", user.UserName);
             return false;
         }
         catch (Exception ex)
         {
-           LogHelper.Error(ex, "修改密码失败：{UserId}", userId);
+           LogHelper.Error(ex, "Password change failed: {UserId}", userId);
             return false;
         }
     }
 
-    #region Redis TOKEN 管理方法
+    #region Redis TOKEN Management Methods
 
     /// <summary>
-    /// 将TOKEN存储到Redis中（支持多地登录）
+    /// Store TOKEN in Redis (supports multi-location login)
     /// </summary>
-    /// <param name="userId">用户ID</param>
+    /// <param name="userId">User ID</param>
     /// <param name="token">JWT TOKEN</param>
-    /// <param name="expiresAt">过期时间</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否存储成功</returns>
+    /// <param name="expiresAt">Expiration time</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Whether storage was successful</returns>
     public async Task<bool> StoreTokenInRedisAsync(string userId, string token, DateTime expiresAt, CancellationToken cancellationToken = default)
     {
         try
@@ -392,57 +392,57 @@ public sealed class AuthService(
             
             if (expiry <= TimeSpan.Zero)
             {
-                LogHelper.Warn("TOKEN已过期，无法存储到Redis：{UserId}", userId);
+                LogHelper.Warn("TOKEN has expired, cannot store in Redis: {UserId}", userId);
                 return false;
             }
 
-            // 从TOKEN中提取JTI（唯一标识）
+            // Extract JTI (unique identifier) from TOKEN
             if (!TryParseTokenMeta(token, out var jti, out _))
             {
-                LogHelper.Warn("无法解析TOKEN的JTI，存储失败：{UserId}", userId);
+                LogHelper.Warn("Unable to parse TOKEN JTI, storage failed: {UserId}", userId);
                 return false;
             }
 
-            // 使用 Hash 结构存储多个TOKEN：key = auth:tokens:{userId}, field = {jti}, value = {token}
+            // Use Hash structure to store multiple TOKENs: key = auth:tokens:{userId}, field = {jti}, value = {token}
             var hashKey = $"auth:tokens:{userId}";
             var tokenData = new
             {
                 token,
-                expiresAt = expiresAt.ToString("o"), // ISO 8601 格式
+                expiresAt = expiresAt.ToString("o"), // ISO 8601 format
                 createdAt = DateTime.UtcNow.ToString("o"),
                 jti
             };
             
-            // 将TOKEN数据序列化为JSON并存储到Hash中
+            // Serialize TOKEN data to JSON and store in Hash
             var tokenJson = System.Text.Json.JsonSerializer.Serialize(tokenData);
             await _redisService.SetHashAsync(hashKey, jti, tokenJson);
             
-            // 为整个Hash设置过期时间（使用最长的TOKEN过期时间 + 1小时缓冲）
+            // Set expiration time for the entire Hash (using longest TOKEN expiration time + 1 hour buffer)
             await _redisService.SetExpiryAsync(hashKey, expiry.Add(TimeSpan.FromHours(1)));
             
-            LogHelper.Info($"TOKEN已存储到Redis（多地登录）：{userId}, JTI: {jti}, 过期时间：{expiresAt}");
+            LogHelper.Info($"TOKEN stored in Redis (multi-location login): {userId}, JTI: {jti}, Expiration: {expiresAt}");
             return true;
         }
         catch (Exception ex)
         {
-            LogHelper.Error(ex, "存储TOKEN到Redis时发生错误：{UserId}", userId);
+            LogHelper.Error(ex, "An error occurred while storing TOKEN in Redis: {UserId}", userId);
             return false;
         }
     }
 
     /// <summary>
-    /// 从Redis中获取用户的所有TOKEN（已废弃，保留用于向后兼容）
-    /// 注意：新版本使用 Hash 结构存储多个 TOKEN，此方法仅用于兼容性
+    /// Get all TOKENs for user from Redis (deprecated, retained for backward compatibility)
+    /// Note: New version uses Hash structure to store multiple TOKENs, this method is only for compatibility
     /// </summary>
-    /// <param name="userId">用户ID</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>TOKEN字符串（仅返回第一个找到的），如果不存在则返回null</returns>
-    [Obsolete("此方法已过时，新版本支持多地登录，请使用 ValidateTokenFromRedisAsync 验证特定 TOKEN")]
+    /// <param name="userId">User ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>TOKEN string (returns only the first found), null if none exists</returns>
+    [Obsolete("This method is obsolete, new version supports multi-location login, please use ValidateTokenFromRedisAsync to verify specific TOKEN")]
     public async Task<string?> GetTokenFromRedisAsync(string userId, CancellationToken cancellationToken = default)
     {
         try
         {
-            // 新版本：从 Hash 中获取所有 TOKEN，返回第一个
+            // New version: Get all TOKENs from Hash, return the first one
             var hashKey = $"auth:tokens:{userId}";
             var db = _redisService.GetDatabase();
             var allFields = await db.HashKeysAsync(hashKey);
@@ -456,76 +456,76 @@ public sealed class AuthService(
                 {
                     var tokenData = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(tokenJson);
                     var token = tokenData.GetProperty("token").GetString();
-                    LogHelper.Info($"从Redis获取TOKEN成功（多地登录模式，返回第一个）：{userId}");
+                    LogHelper.Info($"Successfully retrieved TOKEN from Redis (multi-location login mode, returning first one): {userId}");
                     return token;
                 }
             }
             
-            LogHelper.Info($"Redis中未找到TOKEN：{userId}");
+            LogHelper.Info($"TOKEN not found in Redis: {userId}");
             return null;
         }
         catch (Exception ex)
         {
-            LogHelper.Error(ex, $"从Redis获取TOKEN时发生错误：{userId}");
+            LogHelper.Error(ex, $"An error occurred while retrieving TOKEN from Redis: {userId}");
             return null;
         }
     }
 
     /// <summary>
-    /// 从Redis中移除当前TOKEN（支持多地登录）
+    /// Remove current TOKEN from Redis (supports multi-location login)
     /// </summary>
-    /// <param name="userId">用户ID</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否移除成功</returns>
+    /// <param name="userId">User ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Whether removal was successful</returns>
     public async Task<bool> RemoveTokenFromRedisAsync(string userId, CancellationToken cancellationToken = default)
     {
         try
         {
-            // 从请求中获取当前TOKEN
+            // Get current TOKEN from request
             var rawAuth = _httpContextAccessor?.HttpContext?.Request?.Headers["Authorization"].FirstOrDefault();
             var token = string.IsNullOrWhiteSpace(rawAuth) ? null : rawAuth.Replace("Bearer ", "");
 
             if (string.IsNullOrEmpty(token))
             {
-                LogHelper.Warn("无法获取当前TOKEN，移除失败：{UserId}", userId);
+                LogHelper.Warn("Unable to get current TOKEN, removal failed: {UserId}", userId);
                 return false;
             }
 
-            // 从TOKEN中提取JTI
+            // Extract JTI from TOKEN
             if (!TryParseTokenMeta(token, out var jti, out _))
             {
-                LogHelper.Warn("无法解析TOKEN的JTI，移除失败：{UserId}", userId);
+                LogHelper.Warn("Unable to parse TOKEN JTI, removal failed: {UserId}", userId);
                 return false;
             }
 
-            // 从Hash中删除该JTI对应的TOKEN
+            // Delete TOKEN corresponding to this JTI from Hash
             var hashKey = $"auth:tokens:{userId}";
             var result = await _redisService.DeleteHashFieldAsync(hashKey, jti);
             
             if (result)
             {
-                LogHelper.Info($"TOKEN已从Redis移除（JTI: {jti}）：{userId}");
+                LogHelper.Info($"TOKEN removed from Redis (JTI: {jti}): {userId}");
             }
             else
             {
-                LogHelper.Warn($"从Redis移除TOKEN失败（JTI: {jti}）：{userId}");
+                LogHelper.Warn($"Failed to remove TOKEN from Redis (JTI: {jti}): {userId}");
             }
             
             return result;
         }
         catch (Exception ex)
         {
-            LogHelper.Error(ex, "从Redis移除TOKEN时发生错误：{UserId}", userId);
+            LogHelper.Error(ex, "An error occurred while removing TOKEN from Redis: {UserId}", userId);
             return false;
         }
     }
 
     /// <summary>
-    /// 从Redis中移除用户的所有TOKEN（踢出所有登录会话）
+    /// Remove all TOKENs for user from Redis (kick out all login sessions)
     /// </summary>
-    /// <param name="userId">用户ID</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否移除成功</returns>
+    /// <param name="userId">User ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Whether removal was successful</returns>
     public async Task<bool> RemoveAllTokensFromRedisAsync(string userId, CancellationToken cancellationToken = default)
     {
         try
@@ -535,77 +535,77 @@ public sealed class AuthService(
             
             if (result)
             {
-                LogHelper.Info("用户所有TOKEN已从Redis移除：{UserId}", userId);
+                LogHelper.Info("All TOKENs for user removed from Redis: {UserId}", userId);
             }
             else
             {
-                LogHelper.Warn("从Redis移除用户所有TOKEN失败：{UserId}", userId);
+                LogHelper.Warn("Failed to remove all TOKENs for user from Redis: {UserId}", userId);
             }
             
             return result;
         }
         catch (Exception ex)
         {
-            LogHelper.Error(ex, "从Redis移除用户所有TOKEN时发生错误：{UserId}", userId);
+            LogHelper.Error(ex, "An error occurred while removing all TOKENs for user from Redis: {UserId}", userId);
             return false;
         }
     }
 
     /// <summary>
-    /// 验证Redis中的TOKEN是否有效（支持多地登录）
+    /// Validate if TOKEN in Redis is valid (supports multi-location login)
     /// </summary>
-    /// <param name="userId">用户ID</param>
-    /// <param name="token">要验证的TOKEN</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>TOKEN是否有效</returns>
+    /// <param name="userId">User ID</param>
+    /// <param name="token">TOKEN to validate</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Whether TOKEN is valid</returns>
     public async Task<bool> ValidateTokenFromRedisAsync(string userId, string token, CancellationToken cancellationToken = default)
     {
         try
         {
-            // 从TOKEN中提取JTI
+            // Extract JTI from TOKEN
             if (!TryParseTokenMeta(token, out var jti, out _))
             {
-                LogHelper.Warn("无法解析TOKEN的JTI，验证失败：{UserId}", userId);
+                LogHelper.Warn("Unable to parse TOKEN JTI, validation failed: {UserId}", userId);
                 return false;
             }
 
-            // 从Hash中获取该JTI对应的TOKEN数据
+            // Get TOKEN data corresponding to this JTI from Hash
             var hashKey = $"auth:tokens:{userId}";
             var tokenJson = await _redisService.GetHashAsync(hashKey, jti);
             
             if (string.IsNullOrEmpty(tokenJson))
             {
-                LogHelper.Info($"Redis中未找到TOKEN（JTI: {jti}），验证失败：{userId}");
+                LogHelper.Info($"TOKEN not found in Redis (JTI: {jti}), validation failed: {userId}");
                 return false;
             }
 
-            // 解析TOKEN数据
+            // Parse TOKEN data
             var tokenData = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(tokenJson);
             var storedToken = tokenData.GetProperty("token").GetString();
             var expiresAtStr = tokenData.GetProperty("expiresAt").GetString();
             
-            // 验证TOKEN是否匹配
+            // Verify TOKEN matches
             if (storedToken != token)
             {
-                LogHelper.Warn($"TOKEN不匹配（JTI: {jti}），验证失败：{userId}");
+                LogHelper.Warn($"TOKEN mismatch (JTI: {jti}), validation failed: {userId}");
                 return false;
             }
 
-            // 验证TOKEN是否过期
+            // Verify TOKEN has not expired
             if (DateTime.TryParse(expiresAtStr, out var expiresAt) && expiresAt <= DateTime.UtcNow)
             {
-                LogHelper.Info($"TOKEN已过期（JTI: {jti}），验证失败：{userId}");
-                // 清理过期的TOKEN
+                LogHelper.Info($"TOKEN expired (JTI: {jti}), validation failed: {userId}");
+                // Clean up expired TOKEN
                 await _redisService.DeleteHashFieldAsync(hashKey, jti);
                 return false;
             }
 
-            LogHelper.Info($"TOKEN验证成功（JTI: {jti}）：{userId}");
+            LogHelper.Info($"TOKEN validation successful (JTI: {jti}): {userId}");
             return true;
         }
         catch (Exception ex)
         {
-            LogHelper.Error(ex, "验证Redis中的TOKEN时发生错误：{UserId}", userId);
+            LogHelper.Error(ex, "An error occurred while validating TOKEN in Redis: {UserId}", userId);
             return false;
         }
     }
@@ -618,7 +618,7 @@ public sealed class AuthService(
             var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(token);
             jti = jwt.Id ?? string.Empty;
-            expiresAtUtc = jwt.ValidTo; // 一般是UTC
+            expiresAtUtc = jwt.ValidTo; // Typically UTC
             return !string.IsNullOrEmpty(jti) && expiresAtUtc > DateTime.UtcNow;
         }
         catch
@@ -650,10 +650,10 @@ public sealed class AuthService(
             new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
 
-        // 添加角色声明
+        // Add role claims
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-        // 添加权限声明
+        // Add permission claims
         var permissions = new HashSet<string>();
         bool isSystem = true;
         foreach (var roleName in roles)

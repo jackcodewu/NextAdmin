@@ -6,29 +6,29 @@ using System.ComponentModel.DataAnnotations;
 namespace NextAdmin.Application.DTOs.Roles
 {
     /// <summary>
-    /// 更新角色DTO
+    /// Update role DTO
     /// </summary>
     public class UpdateRoleDto : UpdateDto
     {
 
         /// <summary>
-        /// 角色描述
+        /// Role description
         /// </summary>
-        [StringLength(200, ErrorMessage = "角色描述长度不能超过200个字符")]
+        [StringLength(200, ErrorMessage = "Role description length cannot exceed 200 characters")]
         public string? Description { get; set; }
 
         /// <summary>
-        /// 公司ID(可选)
+        /// Tenant ID (optional)
         /// </summary>
         public string? TenantId { get; set; }
 
         /// <summary>
-        /// 菜单列表
+        /// Menu list
         /// </summary>
         public List<Menu> Menus { get; set; }
 
         /// <summary>
-        /// 权限列表
+        /// Permission list
         /// </summary>
         public List<Permission> Permissions { get; set; }
     }

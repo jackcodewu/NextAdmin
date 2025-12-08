@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace NextAdmin.Infrastructure.Configuration;
 
 /// <summary>
-/// MongoDB配置选项
+/// MongoDB configuration options
 /// </summary>
 public sealed class MongoDbSettings
 {

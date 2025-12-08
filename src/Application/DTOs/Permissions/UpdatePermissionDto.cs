@@ -3,7 +3,7 @@ using NextAdmin.Application.DTOs.Bases;
 namespace NextAdmin.Application.DTOs.Permissions
 {
     /// <summary>
-    /// 更新权限DTO
+    /// Update permission DTO
     /// </summary>
     public class UpdatePermissionDto : UpdateDto
     {
@@ -12,7 +12,7 @@ namespace NextAdmin.Application.DTOs.Permissions
         public string Description { get; set; }
 
         /// <summary>
-        /// 子权限
+        /// Child permissions
         /// </summary>
         public List<UpdatePermissionDto> Children { get; set; } = new();
     }

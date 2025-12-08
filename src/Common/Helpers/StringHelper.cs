@@ -6,12 +6,12 @@ using MongoDB.Bson;
 namespace NextAdmin.Common.Helpers
 {
     /// <summary>
-    /// 字符串帮助类
+    /// String helper class
     /// </summary>
     public static class StringHelper
     {
         /// <summary>
-        /// 检查字符串是否为空或空白
+        /// Check if string is null or whitespace
         /// </summary>
         public static bool IsNullOrWhiteSpace(string value)
         {
@@ -19,7 +19,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 检查字符串是否为空
+        /// Check if string is null or empty
         /// </summary>
         public static bool IsNullOrEmpty(string value)
         {
@@ -27,7 +27,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 截取字符串
+        /// Truncate string
         /// </summary>
         public static string Truncate(string value, int maxLength)
         {
@@ -36,7 +36,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 移除字符串中的空白字符
+        /// Remove whitespace characters from string
         /// </summary>
         public static string RemoveWhitespace(string value)
         {
@@ -45,7 +45,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 将字符串转换为驼峰命名
+        /// Convert string to camelCase
         /// </summary>
         public static string ToCamelCase(string value)
         {
@@ -67,7 +67,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 将字符串转换为帕斯卡命名
+        /// Convert string to PascalCase
         /// </summary>
         public static string ToPascalCase(string value)
         {
@@ -89,7 +89,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 将字符串转换为蛇形命名
+        /// Convert string to snake_case
         /// </summary>
         public static string ToSnakeCase(string value)
         {
@@ -115,7 +115,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 将字符串转换为短横线命名
+        /// Convert string to kebab-case
         /// </summary>
         public static string ToKebabCase(string value)
         {
@@ -141,7 +141,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 检查字符串是否包含中文字符
+        /// Check if string contains Chinese characters
         /// </summary>
         public static bool ContainsChinese(string value)
         {
@@ -150,7 +150,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 检查字符串是否为有效的邮箱地址
+        /// Check if string is a valid email address
         /// </summary>
         public static bool IsValidEmail(string value)
         {
@@ -159,7 +159,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 检查字符串是否为有效的手机号码
+        /// Check if string is a valid phone number
         /// </summary>
         public static bool IsValidPhoneNumber(string value)
         {

@@ -6,68 +6,68 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace NextAdmin.Application.DTOs.Menus
 {
     /// <summary>
-    /// 新增菜单DTO
+    /// Create menu DTO
     /// </summary>
     public class CreateMenuDto : CreateDto
     {
         /// <summary>
-        /// 路径
+        /// Path
         /// </summary>
         public string Path { get; set; } = string.Empty;
         
         /// <summary>
-        /// 标题
+        /// Title
         /// </summary>
         public string Title { get; set; } = string.Empty;
         
         /// <summary>
-        /// 图标
+        /// Icon
         /// </summary>
         public string Icon { get; set; } = string.Empty;
         
         /// <summary>
-        /// 组件
+        /// Component
         /// </summary>
         public string Component { get; set; } = string.Empty;
         
         /// <summary>
-        /// 父级ID（字符串类型，兼容ObjectId）
+        /// Parent ID (string type, compatible with ObjectId)
         /// </summary>
         [BsonRepresentation(BsonType.ObjectId)]
         public string? ParentId { get; set; }
         
         /// <summary>
-        /// 是否隐藏
+        /// Is hidden
         /// </summary>
         public bool IsHide { get; set; }
         
         /// <summary>
-        /// 是否保持活跃
+        /// Keep alive
         /// </summary>
         public bool IsKeepAlive { get; set; }
         
         /// <summary>
-        /// 是否固定
+        /// Is affix
         /// </summary>
         public bool IsAffix { get; set; }
         
         /// <summary>
-        /// 链接
+        /// Link
         /// </summary>
         public string IsLink { get; set; } = string.Empty;
         
         /// <summary>
-        /// 是否iframe
+        /// Is iframe
         /// </summary>
         public bool IsIframe { get; set; }
         
         /// <summary>
-        /// 排序
+        /// Sort order
         /// </summary>
         public int Sort { get; set; }
         
         /// <summary>
-        /// 重定向
+        /// Redirect
         /// </summary>
         public string? Redirect { get; set; }
     }

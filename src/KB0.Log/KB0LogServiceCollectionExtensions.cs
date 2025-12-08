@@ -8,7 +8,7 @@ namespace NextAdmin.Log
     public static class KB0LogServiceCollectionExtensions
     {
         /// <summary>
-        /// 配置日志服务
+        /// Configure log service
         /// </summary>
         public static IServiceCollection ConfigLogService(this IServiceCollection services, IConfiguration configuration)
         {

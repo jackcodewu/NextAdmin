@@ -38,7 +38,7 @@
 		<ProjectReference Include="..\Core\NextAdmin.Core.csproj" />
 		<ProjectReference Include="..\KB0.Log\NextAdmin.Log.csproj" />
 		<ProjectReference Include="..\KB0.Redis\NextAdmin.Redis.csproj" />
-		<!-- 源代码生成器已禁用 - 使用运行时动态生成或标准注册 -->
+		<!-- Source code generator disabled - using runtime dynamic generation or standard registration -->
 		<!-- <ProjectReference Include="..\SourceGenerators\NextAdmin.SourceGenerators.csproj" 
 		                  OutputItemType="Analyzer" 
 		                  ReferenceOutputAssembly="false" /> -->

@@ -17,17 +17,17 @@ namespace NextAdmin.API.Middleware
         {
             try
             {
-                // 记录请求信息
+                // Log request information
                 var request = context.Request;
                 var requestBody = await GetRequestBodyAsync(request);
                 
                 LogHelper.Info(
                     $"Request Start: {request.Method} {request.Path}{request.QueryString} | Body: {requestBody}");
 
-                // 调用下一个中间件
+                // Call next middleware
                 await _next(context);
 
-                // 记录响应信息
+                // Log response information
                 LogHelper.Info(
                     $"Request End: {request.Method} {request.Path} | StatusCode: {context.Response.StatusCode}");
             }

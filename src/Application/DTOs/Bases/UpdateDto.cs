@@ -5,22 +5,22 @@ using System.ComponentModel.DataAnnotations;
 namespace NextAdmin.Application.DTOs.Bases
 {
     /// <summary>
-    /// 更新操作的基础DTO
+    /// Base DTO for update operations
     /// </summary>
     public class UpdateDto
     {
         /// <summary>
-        /// 主键ID
+        /// Primary key ID
         /// </summary>
-        [Required(ErrorMessage = "主键不能为空")]
-        [StringLength(30, ErrorMessage = "主键长度不能超过30")]
+        [Required(ErrorMessage = "Primary key cannot be empty")]
+        [StringLength(30, ErrorMessage = "Primary key length cannot exceed 30")]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = string.Empty;
 
         /// <summary>
-        /// 名称
+        /// Name
         /// </summary>
-        [StringLength(100, ErrorMessage = "名称长度不能超过100")]
+        [StringLength(100, ErrorMessage = "Name length cannot exceed 100")]
         public string? Name { get; set; }
     }
 }

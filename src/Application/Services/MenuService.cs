@@ -25,13 +25,13 @@ public partial class MenuService
         IMenuService
 {
     private readonly IMenuRepository _menuRepository;
-    // private readonly ITenantRepository _repository; // 已移除 Tenant 相关功能
+    // private readonly ITenantRepository _repository; // Tenant related functionality removed
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
 
     public MenuService(
         IMenuRepository menuRepository,
-        // ITenantRepository repository, // 已移除 Tenant 相关功能
+        // ITenantRepository repository, // Tenant related functionality removed
         IMapper mapper,
         IHttpContextAccessor httpContextAccessor,
         UserManager<ApplicationUser> userManager,
@@ -40,7 +40,7 @@ public partial class MenuService
             : base(menuRepository, mapper, httpContextAccessor)
     {
         _menuRepository = menuRepository;
-        // _repository = repository; // 已移除 Tenant 相关功能
+        // _repository = repository; // Tenant related functionality removed
         _userManager = userManager;
         _roleManager = roleManager;
     }
@@ -50,8 +50,8 @@ public partial class MenuService
         var allMenus = await _menuRepository.GetAllAsync(ObjectId.Empty);
 
         var menu = _mapper.Map<Menu>(createDto);
-        // menu.TenantId = GetTenantId(); // 已移除 Tenant 相关属性
-        // menu.TenantName = GetTenantName(); // 已移除 Tenant 相关属性
+        // menu.TenantId = GetTenantId(); // Tenant related property removed
+        // menu.TenantName = GetTenantName(); // Tenant related property removed
         if (menu.ParentId == ObjectId.Empty || menu.ParentId==null)
         {
             menu.ParentId = ObjectId.Empty;
@@ -64,7 +64,7 @@ public partial class MenuService
             await _menuRepository.UpdateManyAsync(allMenus);
         }
 
-        // 已移除 Tenant 相关逻辑
+        // Tenant related logic removed
         // var Tenants = await _repository.GetAllAsync(GetTenantId());
         // if (Tenants.Any())
         // {
@@ -76,7 +76,7 @@ public partial class MenuService
         // }
 
         await DelCache();
-        // await DelCache(typeof(Tenant).Name); // 已移除 Tenant
+        // await DelCache(typeof(Tenant).Name); // Tenant removed
 
         return _mapper.Map<MenuDto>(menu);
     }
@@ -128,8 +128,8 @@ public partial class MenuService
             var allMenus = await _menuRepository.GetAllAsync(ObjectId.Empty);
 
             var menu = _mapper.Map<Menu>(updateDto);
-            // menu.TenantId = CurrentTenantId; // 已移除 Tenant 相关属性
-            // menu.TenantName = GetTenantName(); // 已移除 Tenant 相关属性
+            // menu.TenantId = CurrentTenantId; // Tenant related property removed
+            // menu.TenantName = GetTenantName(); // Tenant related property removed
 
            await Delete(allMenus, menu);
 
@@ -138,7 +138,7 @@ public partial class MenuService
 
             await _menuRepository.UpdateManyAsync(allMenus);
 
-            // 已移除 Tenant 相关逻辑
+            // Tenant related logic removed
             // var Tenants = await _repository.GetAllAsync(ObjectId.Empty);
             // if (Tenants.Any())
             // {
@@ -223,12 +223,12 @@ public partial class MenuService
             }
 
             await DelCache();
-            return ApiResponse.SuccessResponse("更新成功");
+            return ApiResponse.SuccessResponse("Update successful");
         }
         catch (Exception ex)
         {
             LogHelper.Error(ex, ex.Message);
-            return ApiResponse.ErrorResponse("500", $"更新失败: {ex.Message}");
+            return ApiResponse.ErrorResponse("500", $"Update failed: {ex.Message}");
         }
     }
 
@@ -238,7 +238,7 @@ public partial class MenuService
         {
             ObjectId.TryParse(id, out var menuId);
             if (menuId == ObjectId.Empty)
-                return ApiResponse.ErrorResponse("400", "无效的菜单ID");
+                return ApiResponse.ErrorResponse("400", "Invalid menu ID");
 
             var allMenus = await _menuRepository.GetAllAsync(ObjectId.Empty);
             var delMenu = allMenus.FirstOrDefault(c => c.Id == menuId);
@@ -252,7 +252,7 @@ public partial class MenuService
                 await _menuRepository.UpdateManyAsync(allMenus);
             }
 
-            // 已移除 Tenant 相关逻辑
+            // Tenant related logic removed
             // var Tenants = await _repository.GetAllAsync(ObjectId.Empty);
             // if (Tenants.Any())
             // {
@@ -292,14 +292,14 @@ public partial class MenuService
             }
 
             await DelCache();
-            // await DelCache(typeof(Tenant).Name); // 已移除 Tenant
+            // await DelCache(typeof(Tenant).Name); // Tenant removed
 
-            return ApiResponse.SuccessResponse("删除成功");
+            return ApiResponse.SuccessResponse("Deletion successful");
         }
         catch (Exception ex)
         {
             NextAdmin.Log.LogHelper.Error(ex, ex.Message);
-            return ApiResponse.ErrorResponse("500", $"删除失败: {ex.Message}");
+            return ApiResponse.ErrorResponse("500", $"Deletion failed: {ex.Message}");
         }
     }
 
@@ -400,7 +400,7 @@ public partial class MenuService
     }
 
     /// <summary>
-    /// 递归过滤菜单树
+    /// Recursively filter menu tree
     /// </summary>
     private List<Menu> FilterMenuTree(List<Menu> menus)
     {

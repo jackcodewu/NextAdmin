@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace NextAdmin.Core.Domain.Entities.Sys
 {
     /// <summary>
-    /// 系统菜单实体
+    /// System menu entity
     /// </summary>
     [BsonDiscriminator(RootClass = true)]
     [MongoCollection("menus")]
@@ -13,68 +13,68 @@ namespace NextAdmin.Core.Domain.Entities.Sys
     {
 
         /// <summary>
-        /// URL路径
+        /// URL path
         /// </summary>
         public string? Path { get; set; } = string.Empty;
 
         /// <summary>
-        /// 中文名称
+        /// Chinese name
         /// </summary>
         public string? Title { get; set; } = string.Empty;
 
         /// <summary>
-        /// 图标
+        /// Icon
         /// </summary>
         public string? Icon { get; set; } = string.Empty;
 
         /// <summary>
-        /// 组件地址
+        /// Component address
         /// </summary>
         public string? Component { get; set; } = string.Empty;
 
         /// <summary>
-        /// 父级菜单Id
+        /// Parent menu ID
         /// </summary>
         [BsonElement("ParentId")]
         public ObjectId? ParentId { get; set; } = ObjectId.Empty;
 
         /// <summary>
-        /// 是否隐藏
+        /// Whether to hide
         /// </summary>
         public bool IsHide { get; set; } = false;
 
         /// <summary>
-        /// 是否缓存组件状态
+        /// Whether to cache component state
         /// </summary>
         public bool IsKeepAlive { get; set; } = true;
 
         /// <summary>
-        /// 是否固定在tagsView栏
+        /// Whether to pin in tagsView bar
         /// </summary>
         public bool IsAffix { get; set; } = false;
 
         /// <summary>
-        /// 超链接菜单
+        /// Hyperlink menu
         /// </summary>
         public string? IsLink { get; set; } = string.Empty;
 
         /// <summary>
-        /// 是否内嵌
+        /// Whether to embed
         /// </summary>
         public bool IsIframe { get; set; } = false;
 
         /// <summary>
-        /// 排序
+        /// Sort order
         /// </summary>
         public int Sort { get; set; } = 0;
 
         /// <summary>
-        /// 重定向
+        /// Redirect
         /// </summary>
         public string? Redirect { get; set; } = string.Empty;
 
         /// <summary>
-        /// 子菜单列表，用于存储树形结构
+        /// Child menu list, used to store tree structure
         /// </summary>
         [BsonIgnoreIfNull]
         public List<Menu> Children { get; set; } = new List<Menu>();
@@ -102,11 +102,11 @@ namespace NextAdmin.Core.Domain.Entities.Sys
         }
 
         /// <summary>
-        /// 默认构造函数
+        /// Default constructor
         /// </summary>
         public Menu() : base()
         {
-            // 默认值已在属性声明中初始化
+            // Default values are initialized in property declarations
         }
 
         public Menu(ObjectId id) : base(id)

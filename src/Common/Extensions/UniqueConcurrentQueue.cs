@@ -17,7 +17,7 @@ namespace NextAdmin.Common.Extensions
                 _queue.Enqueue(item);
                 return true;
             }
-            return false; // 元素已存在，未入队
+            return false; // Element already exists, not enqueued
         }
 
         public bool TryDequeue(out T item)
@@ -45,7 +45,7 @@ namespace NextAdmin.Common.Extensions
             return GetEnumerator();
         }
 
-        // 供MongoDB反序列化调用
+        // Called by MongoDB deserialization
         public void Add(T item)
         {
             Enqueue(item);

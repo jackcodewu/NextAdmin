@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace NextAdmin.Application.DTOs
 {
     /// <summary>
-    /// 所有DTO的主键基类，统一主键Id
+    /// Base class for all DTOs with primary key, unified primary key ID
     /// </summary>
     public abstract class BaseDto : BasesDto
     {

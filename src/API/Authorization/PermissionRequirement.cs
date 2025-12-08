@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 namespace NextAdmin.API.Authorization
 {
     /// <summary>
-    /// 定义一个授权需求，它要求用户必须拥有特定的权限。
+    /// Defines an authorization requirement that requires the user to have a specific permission.
     /// </summary>
     public class PermissionRequirement : IAuthorizationRequirement
     {
         /// <summary>
-        /// 所需的权限字符串，例如 "Menu.View".
+        /// Required permission string, e.g. "Menu.View".
         /// </summary>
         public string Permission { get; }
 

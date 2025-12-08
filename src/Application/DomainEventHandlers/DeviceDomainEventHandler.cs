@@ -30,7 +30,7 @@ namespace NextAdmin.Application.DomainEventHandlers
 
         public async Task Handle(DeviceDomainEvent notification, CancellationToken cancellationToken)
         {
-            // 先同步所有网关客户端的Device实例
+            // First sync Device instances for all gateway clients
             foreach (var client in _gatewayServer.GetAllClients())
             {
                 if (client.GatewayId == notification.Entity.GatewayId.ToString())

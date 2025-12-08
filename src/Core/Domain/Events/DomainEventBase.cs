@@ -6,7 +6,7 @@ using System;
 namespace NextAdmin.Core.Domain.Events
 {
     /// <summary>
-    /// 抽象领域事件
+    /// Abstract domain event
     /// </summary>
     public abstract class DomainEventBase<TEntity> : INotification where TEntity : AggregateRoot
     {

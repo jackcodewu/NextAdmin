@@ -29,18 +29,18 @@ namespace NextAdmin.API.Controllers
             {
                 var createdDto = await _menuService.AddAsync(createDto);
                 if (createdDto == null)
-                    return BadRequest(ApiResponse<object>.ErrorResponse("400", "操作失败"));
+                    return BadRequest(ApiResponse<object>.ErrorResponse("400", "Operation failed"));
 
-                return Ok(ApiResponse<MenuDto>.SuccessResponse(createdDto, "添加成功"));
+                return Ok(ApiResponse<MenuDto>.SuccessResponse(createdDto, "Added successfully"));
             }
             catch (Exception ex)
             {
-                return Ok(ApiResponse<object>.ErrorResponse("400", "操作失败,请检测提交的数据是否符合规范或是否重复"));
+                return Ok(ApiResponse<object>.ErrorResponse("400", "Operation failed, please check if the submitted data is valid or duplicated"));
             }
         }
 
         /// <summary>
-        /// 获取当前用户的菜单
+        /// Get current user's menus
         /// </summary>
         [Authorize(Policy = MenuPermissions.View)]
         [HttpGet("user-menus")]
@@ -51,7 +51,7 @@ namespace NextAdmin.API.Controllers
             if (menus?.Any() == true)
                 return Ok(ApiResponse<List<MenuDto>>.SuccessResponse(menus));
             else
-                return Ok(ApiResponse<List<MenuDto>>.ErrorResponse("400", "没有数据"));
+                return Ok(ApiResponse<List<MenuDto>>.ErrorResponse("400", "No data"));
         }
 
         [HttpGet("page-list")]

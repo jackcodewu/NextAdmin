@@ -11,41 +11,41 @@ namespace NextAdmin.Application.DTOs.Bases.QueryPages
         where TEntity : AggregateRoot
     {
         ///// <summary>
-        ///// 页码
+        ///// Page number
         ///// </summary>
         //public int? PageNumber { get; set; } = 1;
 
         ///// <summary>
-        ///// 每页条数
+        ///// Items per page
         ///// </summary>
         //public int? PageSize { get; set; } = 20;
 
         /// <summary>
-        /// 多ID集合
+        /// Multiple ID collection
         /// </summary>
         public List<string>? Ids { get;  set; }
 
         /// <summary>
-        /// 是否日期范围，如果true，则默认最近一个月时间范围
+        /// Is date range, if true, defaults to last month time range
         /// </summary>
         public bool IsTimeRange { get; set; }
 
         /// <summary>
-        /// 开始时间,默认一个月
+        /// Start time, defaults to one month ago
         /// </summary>
         public virtual DateTime? StartTime { get; set; } = DateTime.Now.Date.AddMonths(-1);
 
         /// <summary>
-        /// 结束时间，默认当前时间
+        /// End time, defaults to current time
         /// </summary>
         public virtual DateTime? EndTime { get; set; } = DateTime.Now.Date.AddDays(1);
 
         protected FilterDefinitionBuilder<TEntity> builder;
 
         /// <summary>
-        /// 获取基类的MongoDB原生过滤器（时间范围过滤）
+        /// Get base MongoDB native filter (time range filter)
         /// </summary>
-        /// <returns>MongoDB原生过滤器</returns>
+        /// <returns>MongoDB native filter</returns>
         private FilterDefinition<TEntity> GetBaseFilter()
         {
             var builder = Builders<TEntity>.Filter;

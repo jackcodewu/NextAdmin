@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 namespace NextAdmin.Application.DTOs.Roles
 {
     /// <summary>
-    /// 角色查询DTO
+    /// Role query DTO
     /// </summary>
     public class RoleQueryDto
     {
@@ -24,7 +24,7 @@ namespace NextAdmin.Application.DTOs.Roles
 
         public Expression<Func<ApplicationRole, bool>> ToExpression()
         {
-            // 预先转换ObjectId，避免在数据库中进行字符串转换
+            // Pre-convert ObjectId to avoid string conversion in the database
             bool TenantIdParsed = ObjectId.TryParse(TenantId, out ObjectId TenantObjectId);
 
             return r =>

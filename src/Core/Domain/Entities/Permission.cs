@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace NextAdmin.Core.Domain.Entities.Sys;
 
 /// <summary>
-/// 权限实体
+/// Permission entity
 /// </summary>
 [BsonDiscriminator(RootClass = true)]
 [MongoCollection("permissions")]
@@ -15,34 +15,34 @@ public class Permission : AggregateRoot
         : base(id) { }
 
     /// <summary>
-    /// 权限编码（唯一）
+    /// Permission code (unique)
     /// </summary>
     public string Code { get; set; } = string.Empty;
 
     /// <summary>
-    /// 权限描述
+    /// Permission description
     /// </summary>
     public string? CnName { get; set; }
 
     /// <summary>
-    /// 父级权限Id（支持权限树）
+    /// Parent permission ID (supports permission tree)
     /// </summary>
     public ObjectId? ParentId { get; set; } = ObjectId.Empty;
 
     public string TenantName { get; set; }
 
     /// <summary>
-    /// 父权限码
+    /// Parent permission code
     /// </summary>
     public string ParentCode { get; set; }
 
     /// <summary>
-    /// 序号
+    /// Sort order
     /// </summary>
     public int Sort {  get; set; }
 
     /// <summary>
-    /// 子权限
+    /// Child permissions
     /// </summary>
     public List<Permission> Children { get; set; } = new();
 
@@ -108,7 +108,7 @@ public class Permission : AggregateRoot
                 p.ParentId = parentPermissin.Id;
             });
 
-            // 递归处理子节点，只处理有Code且不包含"."的节点
+            // Recursively process child nodes, only process nodes with Code that don't contain "."
             var childrenToProcess = parentPermissin
                 .Children.Where(cp => !string.IsNullOrEmpty(cp.Code) && !cp.Code.Contains("."))
                 .ToList();

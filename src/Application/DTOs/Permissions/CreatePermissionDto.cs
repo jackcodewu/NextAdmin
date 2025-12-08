@@ -5,34 +5,34 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace NextAdmin.Application.DTOs.Permissions
 {
     /// <summary>
-    /// 新增权限DTO
+    /// Create permission DTO
     /// </summary>
     public class CreatePermissionDto:CreateDto
     {
 
         /// <summary>
-        /// 权限编码（唯一）
+        /// Permission code (unique)
         /// </summary>
         public string Code { get; set; } = string.Empty;
 
         /// <summary>
-        /// 权限描述
+        /// Permission description
         /// </summary>
         public string? CnName { get; set; }
 
         /// <summary>
-        /// 父级权限Id（支持权限树）
+        /// Parent permission ID (supports permission tree)
         /// </summary>
         [BsonRepresentation(BsonType.ObjectId)]
         public string? ParentId { get; set; } = ObjectId.Empty.ToString();
 
         /// <summary>
-        /// 父权限码
+        /// Parent permission code
         /// </summary>
         public string ParentCode { get; set; }
 
         /// <summary>
-        /// 序号
+        /// Sort order
         /// </summary>
         public int Sort { get; set; }
 

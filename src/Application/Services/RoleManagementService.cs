@@ -16,11 +16,11 @@ using MongoDB.Driver;
 namespace NextAdmin.Application.Services;
 
 /// <summary>
-/// 角色管理服务实现
+/// Role management service implementation
 /// </summary>
 public class RoleManagementService : IRoleManagementService
 {
-    // private readonly ITenantRepository _TenantRepository; // 已移除 Tenant 相关功能
+    // private readonly ITenantRepository _TenantRepository; // Tenant related functionality removed
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -29,13 +29,13 @@ public class RoleManagementService : IRoleManagementService
 
     public RoleManagementService(
         RoleManager<ApplicationRole> roleManager,
-        // ITenantRepository TenantRepository, // 已移除 Tenant 相关功能
+        // ITenantRepository TenantRepository, // Tenant related functionality removed
         IHttpContextAccessor httpContextAccessor,
         UserManager<ApplicationUser> userManager,
         IMapper mapper
     )
     {
-        // _TenantRepository = TenantRepository; // 已移除 Tenant 相关功能
+        // _TenantRepository = TenantRepository; // Tenant related functionality removed
         _roleManager = roleManager;
         _userManager = userManager;
         _httpContextAccessor = httpContextAccessor;
@@ -44,14 +44,14 @@ public class RoleManagementService : IRoleManagementService
     public ObjectId GetTenantId(string? inputTenantId = null)
     {
 
-        // 超级管理员：允许指定TenantId，否则返回Empty
+        // Super admin: Allow specifying TenantId, otherwise return Empty
         if (
             !string.IsNullOrEmpty(inputTenantId)
             && ObjectId.TryParse(inputTenantId, out var cid)
         )
             return cid;
 
-        // 普通用户：始终用自己
+        // Regular user: Always use their own
         ObjectId.TryParse(
             _httpContextAccessor.HttpContext?.User?.FindFirst("TenantId")?.Value,
             out ObjectId TenantId
@@ -64,15 +64,15 @@ public class RoleManagementService : IRoleManagementService
     }
 
     /// <summary>
-    /// 创建角色
+    /// Create role
     /// </summary>
     public async Task<Result<RoleDto>> CreateRoleAsync(CreateRoleDto createRoleDto)
     {
-        // 检查角色名是否已存在
+        // Check if role name already exists
         var existingRole = await _roleManager.FindByNameAsync(createRoleDto.Name);
         if (existingRole != null)
         {
-            return Result<RoleDto>.Failure("角色名已存在");
+            return Result<RoleDto>.Failure("Role name already exists");
         }
 
         var role = new ApplicationRole
@@ -82,12 +82,12 @@ public class RoleManagementService : IRoleManagementService
             CreatedAt = DateTime.UtcNow,
         };
 
-        // 已移除 Tenant 相关逻辑
+        // Tenant related logic removed
         // var TenantId = GetTenantId(createRoleDto.TenantId);
         // var Tenant = await _TenantRepository.GetByIdAsync(TenantId);
         // if (Tenant == null)
         // {
-        //     return Result<RoleDto>.Failure("公司不存在");
+        //     return Result<RoleDto>.Failure("Company does not exist");
         // }
         // role.TenantId = TenantId;
         // role.TenantName = Tenant.Name;
@@ -107,29 +107,29 @@ public class RoleManagementService : IRoleManagementService
     }
 
     /// <summary>
-    /// 更新角色
+    /// Update role
     /// </summary>
     public async Task<Result<RoleDto>> UpdateRoleAsync(string id, UpdateRoleDto updateRoleDto)
     {
         var role = await _roleManager.FindByIdAsync(id);
         if (role == null)
         {
-            return Result<RoleDto>.Failure("角色不存在");
+            return Result<RoleDto>.Failure("Role does not exist");
         }
 
-        // 检查角色名是否被其他角色使用
+        // Check if role name is used by other roles
         var existingRole = await _roleManager.FindByNameAsync(updateRoleDto.Name);
         if (existingRole != null && existingRole.Id != role.Id)
         {
-            return Result<RoleDto>.Failure("角色名已被其他角色使用");
+            return Result<RoleDto>.Failure("Role name is already used by another role");
         }
         
-        // 已移除 Tenant 相关逻辑
+        // Tenant related logic removed
         // var TenantId = GetTenantId(updateRoleDto.TenantId);
         // var Tenant = await _TenantRepository.GetByIdAsync(TenantId);
         // if (Tenant == null)
         // {
-        //     return Result<RoleDto>.Failure("公司不存在");
+        //     return Result<RoleDto>.Failure("Company does not exist");
         // }
         // role.TenantId = TenantId;
         
@@ -157,7 +157,7 @@ public class RoleManagementService : IRoleManagementService
     }
 
     /// <summary>
-    /// 获取角色列表
+    /// Get role list
     /// </summary>
     public async Task<PagedResultDto<RolesDto>> GetRolesAsync(
         RoleQueryDto roleQueryDto,
@@ -186,7 +186,7 @@ public class RoleManagementService : IRoleManagementService
     }
 
     /// <summary>
-    /// 获取所有角色（不分页）
+    /// Get all roles (without pagination)
     /// </summary>
     public async Task<List<RoleDto>> GetAllRolesAsync()
     {
@@ -203,7 +203,7 @@ public class RoleManagementService : IRoleManagementService
     }
 
     /// <summary>
-    /// 根据ID获取角色
+    /// Get role by ID
     /// </summary>
     public async Task<RoleDto?> GetRoleByIdAsync(string id)
     {
@@ -216,7 +216,7 @@ public class RoleManagementService : IRoleManagementService
     }
 
     /// <summary>
-    /// 根据名称获取角色
+    /// Get role by name
     /// </summary>
     public async Task<RoleDto?> GetRoleByNameAsync(string name)
     {
@@ -229,21 +229,21 @@ public class RoleManagementService : IRoleManagementService
     }
 
     /// <summary>
-    /// 删除角色
+    /// Delete role
     /// </summary>
     public async Task<Result> DeleteRoleAsync(string id)
     {
         var role = await _roleManager.FindByIdAsync(id);
         if (role == null)
         {
-            return Result.Failure("角色不存在");
+            return Result.Failure("Role does not exist");
         }
 
-        // 检查是否有用户使用此角色
+        // Check if any users are using this role
         var userCount = await GetRoleUserCountAsync(role.Name!);
         if (userCount > 0)
         {
-            return Result.Failure($"无法删除角色，还有 {userCount} 个用户正在使用此角色");
+            return Result.Failure($"Cannot delete role, {userCount} user(s) are currently using this role");
         }
 
         var result = await _roleManager.DeleteAsync(role);
@@ -256,7 +256,7 @@ public class RoleManagementService : IRoleManagementService
     }
 
     /// <summary>
-    /// 获取角色的用户列表
+    /// Get role's user list
     /// </summary>
     public async Task<List<UserDto>> GetRoleUsersAsync(string roleId)
     {
@@ -292,7 +292,7 @@ public class RoleManagementService : IRoleManagementService
     }
 
     /// <summary>
-    /// 获取角色的用户数量
+    /// Get role's user count
     /// </summary>
     private async Task<int> GetRoleUserCountAsync(string roleName)
     {
@@ -301,7 +301,7 @@ public class RoleManagementService : IRoleManagementService
     }
 
     /// <summary>
-    /// 映射到角色DTO
+    /// Map to role DTO
     /// </summary>
     private RoleDto MapToRoleDto(ApplicationRole role, int userCount)
     {

@@ -13,7 +13,7 @@ using System.Linq;
 namespace NextAdmin.Log
 {
     /// <summary>
-    /// 日志级别枚举
+    /// Log level enumeration
     /// </summary>
     public enum LogLevel
     {
@@ -25,7 +25,7 @@ namespace NextAdmin.Log
     }
 
     /// <summary>
-    /// 日志项类
+    /// Log item class
     /// </summary>
     public class LogItem
     {
@@ -48,7 +48,7 @@ namespace NextAdmin.Log
     }
 
     /// <summary>
-    /// 日志帮助类，提供基于队列的异步日志处理
+    /// Log helper class that provides queue-based asynchronous log processing
     /// </summary>
     public class LogHelper : IDisposable
     {
@@ -59,15 +59,15 @@ namespace NextAdmin.Log
         private static readonly object _lock = new object();
         private static bool _isDisposed = false;
         private static bool _isInitialized = false;
-        private static int _queueSize = 10000; // 默认队列大小
-        private static int _flushInterval = 100; // 默认刷新间隔(毫秒)
-        private static bool _enableConsoleOutput = true; // 默认启用控制台输出
-        private static string _logFilePath = "logs"; // 默认日志文件路径
+        private static int _queueSize = 10000; // Default queue size
+        private static int _flushInterval = 100; // Default flush interval (milliseconds)
+        private static bool _enableConsoleOutput = true; // Default enable console output
+        private static string _logFilePath = "logs"; // Default log file path
 
         public static bool IsDebugEnabled { get; set; }
 
         /// <summary>
-        /// 静态构造函数，初始化日志处理任务
+        /// Static constructor to initialize log processing task
         /// </summary>
         static LogHelper()
         {
@@ -76,7 +76,7 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 配置日志服务
+        /// Configure log service
         /// </summary>
         public static void ConfigLogService(IServiceCollection services, IConfiguration configuration)
         {
@@ -90,12 +90,12 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 初始化日志系统
+        /// Initialize log system
         /// </summary>
-        /// <param name="queueSize">队列大小</param>
-        /// <param name="flushInterval">刷新间隔(毫秒)</param>
-        /// <param name="enableConsoleOutput">是否启用控制台输出</param>
-        /// <param name="logFilePath">日志文件路径</param>
+        /// <param name="queueSize">Queue size</param>
+        /// <param name="flushInterval">Flush interval (milliseconds)</param>
+        /// <param name="enableConsoleOutput">Enable console output</param>
+        /// <param name="logFilePath">Log file path</param>
         public static void Initialize(int queueSize = 10000, int flushInterval = 100, bool enableConsoleOutput = true, string logFilePath = "logs")
         {
             if (_isInitialized)
@@ -111,19 +111,19 @@ namespace NextAdmin.Log
                 _enableConsoleOutput = enableConsoleOutput;
                 _logFilePath = logFilePath;
 
-                // 确保日志目录存在
+                // Ensure log directory exists
                 if (!Directory.Exists(_logFilePath))
                 {
                     Directory.CreateDirectory(_logFilePath);
                 }
 
                 _isInitialized = true;
-                _logger.Info("日志系统初始化完成");
+                _logger.Info("Log system initialization completed");
             }
         }
 
         /// <summary>
-        /// 记录调试日志
+        /// Log debug message
         /// </summary>
         public static void Debug(string message, string category = null, bool isConsoleOutput = false)
         {
@@ -131,7 +131,7 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 记录信息日志
+        /// Log information message
         /// </summary>
         public static void Info(string message, string category = null, bool isConsoleOutput = false)
         {
@@ -139,7 +139,7 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 记录警告日志
+        /// Log warning message
         /// </summary>
         public static void Warn(string message, string category = null, bool isConsoleOutput = false)
         {
@@ -147,7 +147,7 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 记录错误日志
+        /// Log error message
         /// </summary>
         public static void Error(string message, Exception exception = null, string category = null, bool isConsoleOutput = false)
         {
@@ -155,7 +155,7 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 记录错误日志
+        /// Log error message
         /// </summary>
         public static void Error(Exception exception, string message,string category = null, bool isConsoleOutput = false)
         {
@@ -163,7 +163,7 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 记录致命错误日志
+        /// Log fatal error message
         /// </summary>
         public static void Fatal(string message, Exception exception = null, string category = null, bool isConsoleOutput = false)
         {
@@ -171,30 +171,30 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 控制台输出
+        /// Console output
         /// </summary>
         public static void ConsoleOutput(string message, ConsoleColor color = ConsoleColor.White)
         {
             if (!_enableConsoleOutput)
                 return;
 
-            // 直接输出消息，不添加额外格式
+            // Output message directly without additional formatting
             Console.WriteLine(message);
         }
 
         /// <summary>
-        /// 将日志项加入队列
+        /// Enqueue log item to queue
         /// </summary>
         private static void EnqueueLog(LogLevel level, string message, Exception exception = null, string category = null, bool isConsoleOutput = false)
         {
             if (_isDisposed)
                 return;
 
-            // 检查队列大小，防止内存溢出
+            // Check queue size to prevent memory overflow
             if (_logQueue.Count >= _queueSize)
             {
-                // 队列已满，记录警告并丢弃日志
-                _logger.Warn($"日志队列已满({_queueSize})，丢弃日志: {message}");
+                // Queue is full, log warning and discard log
+                _logger.Warn($"Log queue is full ({_queueSize}), discarding log: {message}");
                 return;
             }
 
@@ -203,7 +203,7 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 处理日志队列
+        /// Process log queue
         /// </summary>
         private static async Task ProcessLogQueueAsync()
         {
@@ -214,13 +214,13 @@ namespace NextAdmin.Log
             {
                 try
                 {
-                    // 批量处理日志
+                    // Batch process logs
                     while (_logQueue.TryDequeue(out var logItem))
                     {
-                        // 构建日志消息
+                        // Build log message
                         var logMessage = BuildLogMessage(logItem);
                         
-                        // 根据日志级别记录到NLog
+                        // Log to NLog based on log level
                         switch (logItem.Level)
                         {
                             case LogLevel.Debug:
@@ -240,17 +240,17 @@ namespace NextAdmin.Log
                                 break;
                         }
 
-                        // 如果需要控制台输出
+                        // If console output is needed
                         if (logItem.IsConsoleOutput && _enableConsoleOutput)
                         {
                             Console.WriteLine(logMessage);
                         }
 
-                        // 将日志添加到构建器
+                        // Add log to builder
                         logBuilder.AppendLine(logMessage);
                     }
 
-                    // 定期刷新日志到文件
+                    // Periodically flush logs to file
                     if (logBuilder.Length > 0 && (DateTime.Now - lastFlushTime).TotalMilliseconds >= _flushInterval)
                     {
                         await FlushLogsToFileAsync(logBuilder);
@@ -258,18 +258,18 @@ namespace NextAdmin.Log
                         lastFlushTime = DateTime.Now;
                     }
 
-                    // 短暂休眠，避免CPU占用过高
+                    // Brief sleep to avoid high CPU usage
                     await Task.Delay(10, _cancellationTokenSource.Token);
                 }
                 catch (Exception ex)
                 {
-                    // 记录处理日志时的异常
-                    _logger.Error(ex, "处理日志队列时发生异常");
+                    // Log exceptions during log processing
+                    _logger.Error(ex, "Exception occurred while processing log queue");
                     await Task.Delay(100, _cancellationTokenSource.Token);
                 }
             }
 
-            // 处理剩余的日志
+            // Process remaining logs
             if (logBuilder.Length > 0)
             {
                 await FlushLogsToFileAsync(logBuilder);
@@ -277,13 +277,13 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 构建日志消息
+        /// Build log message
         /// </summary>
         private static string BuildLogMessage(LogItem logItem)
         {
             var sb = new StringBuilder();
 
-            //// 只在非控制台输出时添加时间戳和日志级别
+            //// Add timestamp and log level only for non-console output
             if (!logItem.IsConsoleOutput)
             {
                 sb.Append($"\r\n\r\n[{logItem.Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{logItem.Level}]\r\n");
@@ -313,13 +313,13 @@ namespace NextAdmin.Log
         // ... existing code ...
 
         /// <summary>
-        /// 将日志刷新到文件
+        /// Flush logs to file
         /// </summary>
         private static async Task FlushLogsToFileAsync(StringBuilder logBuilder)
         {
             try
             {
-                // 创建按年/月/日分层的目录结构
+                // Create hierarchical directory structure by year/month/day
                 var now = DateTime.Now;
                 var yearDir = now.ToString("yyyy");
                 var monthDir = now.ToString("MM");
@@ -327,26 +327,26 @@ namespace NextAdmin.Log
 
                 var logDir = Path.Combine(_logFilePath, yearDir, monthDir, dayDir);
 
-                // 确保目录存在
+                // Ensure directory exists
                 if (!Directory.Exists(logDir))
                 {
                     Directory.CreateDirectory(logDir);
                 }
 
-                // 生成日志文件名：HH.log (每小时一个文件)
+                // Generate log file name: HH.log (one file per hour)
                 var logFileName = Path.Combine(logDir, $"{now.ToString("yyyy-MM-dd_HH")}.log");
                 await File.AppendAllTextAsync(logFileName, logBuilder.ToString());
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "将日志写入文件时发生异常");
+                _logger.Error(ex, "Exception occurred while writing logs to file");
             }
         }
 
         // ... existing code ...
 
         /// <summary>
-        /// 释放资源
+        /// Release resources
         /// </summary>
         public void Dispose()
         {
@@ -355,7 +355,7 @@ namespace NextAdmin.Log
         }
 
         /// <summary>
-        /// 释放资源
+        /// Release resources
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
@@ -364,20 +364,20 @@ namespace NextAdmin.Log
 
             if (disposing)
             {
-                // 取消日志处理任务
+                // Cancel log processing task
                 _cancellationTokenSource.Cancel();
                 
-                // 等待任务完成
+                // Wait for task completion
                 try
                 {
                     _processTask.Wait(TimeSpan.FromSeconds(5));
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex, "等待日志处理任务完成时发生异常");
+                    _logger.Error(ex, "Exception occurred while waiting for log processing task to complete");
                 }
                 
-                // 释放资源
+                // Release resources
                 _cancellationTokenSource.Dispose();
             }
 

@@ -5,26 +5,26 @@ using System.ComponentModel.DataAnnotations;
 namespace NextAdmin.Application.DTOs;
 
 /// <summary>
-/// 创建角色DTO
+/// Create role DTO
 /// </summary>
 public class CreateRoleDto : CreateDto
 {
     /// <summary>
-    /// 角色名称
+    /// Role name
     /// </summary>
-    [Required(ErrorMessage = "角色名称不能为空")]
-    [StringLength(50, ErrorMessage = "角色名称长度不能超过50个字符")]
+    [Required(ErrorMessage = "Role name cannot be empty")]
+    [StringLength(50, ErrorMessage = "Role name length cannot exceed 50 characters")]
     public required string Name { get; set; }
 
     /// <summary>
-    /// 角色描述
+    /// Role description
     /// </summary>
-    [StringLength(200, ErrorMessage = "角色描述长度不能超过200个字符")]
+    [StringLength(200, ErrorMessage = "Role description length cannot exceed 200 characters")]
     public string? Description { get; set; }
 
 
     /// <summary>
-    /// 公司ID(可选)
+    /// Tenant ID (optional)
     /// </summary>
     public string? TenantId { get; set; }
 }

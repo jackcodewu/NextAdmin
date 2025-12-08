@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 namespace NextAdmin.Application.DTOs.Users
 {
     /// <summary>
-    /// 用户查询DTO
+    /// User query DTO
     /// </summary>
     public class UserQueryDto
     {

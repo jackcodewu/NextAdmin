@@ -30,17 +30,17 @@ namespace NextAdmin.API
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            // 确保配置文件变更可热加载，便于动态获取TenantId等配置
+            // Ensure configuration files can be hot-reloaded for dynamic retrieval of TenantId and other settings
             builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            // 配置 NLog
+            // Configure NLog
             builder.Services.ConfigLogService(builder.Configuration);
 
-            // 初始化日志系统
+            // Initialize logging system
             LogHelper.Initialize(
-                queueSize: 10000,                    // 日志队列大小
-                flushInterval: 100,                  // 刷新间隔(毫秒)
-                enableConsoleOutput: true,           // 启用控制台输出
-                logFilePath: "logs"                  // 日志文件路径
+                queueSize: 10000,                    // Log queue size
+                flushInterval: 100,                  // Flush interval (milliseconds)
+                enableConsoleOutput: true,           // Enable console output
+                logFilePath: "logs"                  // Log file path
             );
 
             builder.Services
@@ -61,19 +61,19 @@ namespace NextAdmin.API
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;     // 新增这行
-                options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;    // 新增这行
+                options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;     // Added this line
+                options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;    // Added this line
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false; // 在生产环境中设置为 true
+                options.RequireHttpsMetadata = false; // Set to true in production environment
                 options.SaveToken = true;
                 options.IncludeErrorDetails = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidateLifetime = true, // 启用生命周期验证，作为Redis验证的备用方案
+                    ValidateLifetime = true, // Enable lifetime validation as a fallback for Redis validation
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     ValidAudience = builder.Configuration["Jwt:Audience"],
@@ -81,7 +81,7 @@ namespace NextAdmin.API
                     ClockSkew = TimeSpan.Zero
                 };
 
-                // 使用系统内置的JWT认证事件处理器，添加Redis验证逻辑
+                // Use built-in JWT authentication event handler, add Redis validation logic
                 options.Events = new JwtBearerEvents
                 {
                     OnTokenValidated = async context =>
@@ -94,7 +94,7 @@ namespace NextAdmin.API
                             if (string.IsNullOrEmpty(userId))
                             {
                                 context.Response.Headers.Append("X-Token-Expired", "true");
-                                context.Fail("TOKEN验证失败：缺少用户ID");
+                                context.Fail("TOKEN validation failed: Missing user ID");
                                 return;
                             }
 
@@ -104,7 +104,7 @@ namespace NextAdmin.API
                             if (string.IsNullOrEmpty(token))
                             {
                                 context.Response.Headers.Append("X-Token-Expired", "true");
-                                context.Fail("TOKEN验证失败：请求头中缺少TOKEN");
+                                context.Fail("TOKEN validation failed: Missing TOKEN in request header");
                                 return;
                             }
 
@@ -114,12 +114,12 @@ namespace NextAdmin.API
                             {
                                 if (environment.IsDevelopment())
                                 {
-                                    Console.WriteLine($"开发环境：无法解析TOKEN标识，允许访问：{userId}");
+                                    Console.WriteLine($"Development environment: Unable to parse TOKEN identifier, allowing access: {userId}");
                                 }
                                 else
                                 {
                                     context.Response.Headers.Append("X-Token-Expired", "true");
-                                    context.Fail("TOKEN验证失败：无法解析TOKEN标识");
+                                    context.Fail("TOKEN validation failed: Unable to parse TOKEN identifier");
                                 }
                                 return;
                             }
@@ -131,7 +131,7 @@ namespace NextAdmin.API
                                 if (!string.IsNullOrEmpty(revokedMarker))
                                 {
                                     context.Response.Headers.Append("X-Token-Expired", "true");
-                                    context.Fail("TOKEN验证失败：TOKEN已被注销");
+                                    context.Fail("TOKEN validation failed: TOKEN has been revoked");
                                     return;
                                 }
                             }
@@ -143,19 +143,19 @@ namespace NextAdmin.API
                                 {
                                     if (environment.IsDevelopment())
                                     {
-                                        Console.WriteLine($"开发环境：TOKEN在Redis中缺失且无法解析过期时间，允许访问：{userId}");
+                                        Console.WriteLine($"Development environment: TOKEN missing in Redis and unable to parse expiry time, allowing access: {userId}");
                                         return;
                                     }
 
                                     context.Response.Headers.Append("X-Token-Expired", "true");
-                                    context.Fail("TOKEN验证失败：无法解析TOKEN有效期");
+                                    context.Fail("TOKEN validation failed: Unable to parse TOKEN validity period");
                                     return;
                                 }
 
                                 if (expiresAt <= DateTime.UtcNow)
                                 {
                                     context.Response.Headers.Append("X-Token-Expired", "true");
-                                    context.Fail("TOKEN验证失败：TOKEN已过期");
+                                    context.Fail("TOKEN validation failed: TOKEN has expired");
                                     return;
                                 }
 
@@ -164,42 +164,42 @@ namespace NextAdmin.API
                                 {
                                     if (environment.IsDevelopment())
                                     {
-                                        Console.WriteLine($"开发环境：Redis恢复TOKEN失败，但JWT有效，允许访问：{userId}");
+                                        Console.WriteLine($"Development environment: Redis restore TOKEN failed, but JWT valid, allowing access: {userId}");
                                         return;
                                     }
 
                                     context.Response.Headers.Append("X-Token-Expired", "true");
-                                    context.Fail("TOKEN验证失败：无法恢复Redis状态");
+                                    context.Fail("TOKEN validation failed: Unable to restore Redis state");
                                     return;
                                 }
 
-                                Console.WriteLine($"TOKEN在Redis中缺失，已自动恢复：{userId}");
+                                Console.WriteLine($"TOKEN missing in Redis, automatically restored: {userId}");
                             }
                             else
                             {
-                                Console.WriteLine($"TOKEN在Redis中验证成功：{userId}");
+                                Console.WriteLine($"TOKEN validated successfully in Redis: {userId}");
                             }
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Redis TOKEN验证过程中发生错误: {ex.Message}");
+                            Console.WriteLine($"Error occurred during Redis TOKEN verification: {ex.Message}");
 
                             if (environment.IsDevelopment())
                             {
-                                Console.WriteLine("开发环境：Redis验证异常，但允许继续访问");
+                                Console.WriteLine("Development environment: Redis validation exception, but allowing continued access");
                             }
                             else
                             {
                                 context.Response.Headers.Append("X-Token-Expired", "true");
-                                context.Fail("TOKEN验证失败：验证过程中发生错误");
+                                context.Fail("TOKEN validation failed: Error occurred during validation process");
                             }
                         }
                     },
                     OnAuthenticationFailed = context =>
                     {
-                        Console.WriteLine($"JWT认证失败: {context.Exception.Message}");
+                        Console.WriteLine($"JWT authentication failed: {context.Exception.Message}");
                         
-                        // 添加响应头，提示前端清除 Token
+                        // Add response header to prompt frontend to clear Token
                         context.Response.Headers.Append("X-Token-Expired", "true");
                         context.Response.Headers.Append("WWW-Authenticate", "Bearer error=\"invalid_token\", error_description=\"Token validation failed\"");
                         
@@ -207,7 +207,7 @@ namespace NextAdmin.API
                     },
                     OnChallenge = context =>
                     {
-                        // 自定义 401 响应，提示用户重新登录
+                        // Customize 401 response, prompt user to log in again
                         context.HandleResponse();
                         context.Response.StatusCode = 401;
                         context.Response.ContentType = "application/json";
@@ -217,14 +217,14 @@ namespace NextAdmin.API
                         {
                             success = false,
                             code = "401",
-                            message = context.ErrorDescription ?? "身份验证失败，请重新登录"
+                            message = context.ErrorDescription ?? "Authentication failed, please log in again"
                         });
                         
                         return context.Response.WriteAsync(result);
                     },
                     OnMessageReceived = context =>
                     {
-                        // 从查询字符串获取TOKEN（用于SignalR等场景）
+                        // Get TOKEN from query string (for SignalR and similar scenarios)
                         var accessToken = context.Request.Query["access_token"];
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/api/real-time-data"))
@@ -236,23 +236,23 @@ namespace NextAdmin.API
                 };
             });
 
-            // 注册 HttpContextAccessor
+            // Register HttpContextAccessor
             builder.Services.AddHttpContextAccessor();
 
-            // 注册 HttpClient 工厂
+            // Register HttpClient factory
             builder.Services.AddHttpClient();
 
-            // 添加分布式缓存服务（Redis）
+            // Add distributed cache service (Redis)
             builder.Services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = builder.Configuration.GetConnectionString("Redis");
                 options.InstanceName = "NextAdmin_";
             });
 
-            // 本地内存缓存，用于 RedisService 作为一级缓存
+            // Local memory cache, used by RedisService as L1 cache
             builder.Services.AddMemoryCache();
 
-            // 添加CORS策略
+            // Add CORS policy
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
@@ -265,13 +265,13 @@ namespace NextAdmin.API
                 });
             });
 
-            // 添加SignalR服务
+            // Add SignalR services
             //builder.Services.AddRealTimeSignalR(builder.Configuration);
 
-            // 注册基础设施层服务
+            // Register infrastructure layer services
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
-            // 注册应用层服务
+            // Register application layer services
             builder.Services.AddApplicationServices(builder.Configuration);
 
             builder.Services.AddOptions<JwtSettings>()
@@ -279,13 +279,13 @@ namespace NextAdmin.API
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
-            // 读取自定义配置
+            // Read custom configuration
             var customSettings = builder.Configuration.GetSection(MongoDbSettings.SectionName).Get<MongoDbSettings>();
             if (customSettings is null)
             {
                 throw new InvalidOperationException("MongoDB settings are missing in configuration.");
             }
-            // 注册 MongoDB Identity
+            // Register MongoDB Identity
             builder.Services.AddIdentityMongoDbProvider<ApplicationUser, ApplicationRole, ObjectId>(
                 identityOptions =>
                 {
@@ -307,14 +307,14 @@ namespace NextAdmin.API
                     mongoOptions.ConnectionString = $"{customSettings.ConnectionString}";
                 });
 
-            // 禁用 Identity 的 Cookie 认证
+            // Disable Identity's Cookie authentication
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.Cookie.Name = "Disabled";
                 options.ExpireTimeSpan = TimeSpan.FromSeconds(1);
                 options.SlidingExpiration = false;
-                options.LoginPath = null;           // 新增
-                options.LogoutPath = null;          // 新增  
+                options.LoginPath = null;           // Added
+                options.LogoutPath = null;          // Added  
                 options.AccessDeniedPath = null;
                 options.Events.OnRedirectToLogin = context =>
                 {
@@ -328,12 +328,12 @@ namespace NextAdmin.API
                 };
             });
 
-            // 授权配置
+            // Authorization configuration
             builder.Services.AddSingleton<IAuthorizationPolicyProvider, DefaultAuthorizationPolicyProvider>();
             builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
             builder.Services.AddAuthorization(options =>
             {
-                // 自动从PermissionsDefine类中注册所有权限策略
+                // Automatically register all permission policies from PermissionsDefine class
                 var permissionType = typeof(PermissionsDefine);
                 var permissionValues = new HashSet<string>(StringComparer.Ordinal);
 
@@ -369,38 +369,38 @@ namespace NextAdmin.API
                         policy.Requirements.Add(new PermissionRequirement(permission)));
                 }
 
-                // 保留您可能需要的其他手动策略
+                // Retain other manual policies you may need
                 options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
                 options.AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
             });
 
-            // 注册应用服务
+            // Register application services
             builder.Services.AddScoped<IAuthService, AuthService>();
 
-            // 问题详细信息配置
+            // Problem details configuration
             builder.Services.AddProblemDetails();
 
-            // Swagger 配置
+            // Swagger configuration
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "NextAdmin API",
                     Version = "v1",
-                    Description = "通用后台管理系统"
+                    Description = "General backend management system"
                 });
                 c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "NextAdmin.API.xml"), true);
 
                 c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "NextAdmin.Application.xml"), true);
 
-                // 让 Swagger 把 BsonDocument 看成一个普通对象（additionalProperties 任意）
+                // Make Swagger see BsonDocument as a regular object (additionalProperties arbitrary)
                 c.MapType<BsonDocument>(() => new OpenApiSchema
                 {
                     Type = "object",
                     AdditionalPropertiesAllowed = true
                 });
 
-                // JWT 认证配置
+                // JWT authentication configuration
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -425,7 +425,7 @@ namespace NextAdmin.API
                     }
                 });
 
-                // 包含XML注释
+                // Include XML comments
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 if (File.Exists(xmlPath))
@@ -434,7 +434,7 @@ namespace NextAdmin.API
                 }
             });
 
-            // 健康检查
+            // Health checks
             builder.Services.AddHealthChecks();
 
             var app = builder.Build();
@@ -442,24 +442,24 @@ namespace NextAdmin.API
             // Enable serving static files (required for custom Swagger assets)
             app.UseStaticFiles();
 
-            // 配置HTTP请求管道
+            // Configure HTTP request pipeline
 
-            // Swagger 在所有环境启用（包括 IIS 生产环境）
+            // Swagger enabled in all environments (including IIS production environment)
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "NextAdmin API v1");
-                c.DocumentTitle = "NextAdmin API 文档";
+                c.DocumentTitle = "NextAdmin API Documentation";
                 
-                // 启用授权信息持久化（刷新页面后保留 Token）
+                // Enable authorization information persistence (retain Token after page refresh)
                 c.ConfigObject.PersistAuthorization = true;
                 c.EnablePersistAuthorization();
 
-                // 自定义脚本，用于额外持久化 Swagger 授权状态
+                // Custom script for additional persistence of Swagger authorization state
                 c.InjectJavascript("/swagger/swagger-auth-persist.js");
             });
 
-            // 仅在生产环境中使用HTTPS重定向
+            // Use HTTPS redirect only in production environment
             if (!app.Environment.IsDevelopment())
             {
                 app.UseHttpsRedirection();
@@ -469,29 +469,29 @@ namespace NextAdmin.API
             app.UseAuthentication();
             app.UseAuthorization();
 
-            // 添加异常处理中间件
+            // Add exception handling middleware
             app.UseMiddleware<Middleware.ExceptionHandlingMiddleware>();
 
-            // 添加WebSocket支持
+            // Add WebSocket support
             app.UseWebSockets(new WebSocketOptions
             {
                 KeepAliveInterval = TimeSpan.FromMinutes(2)
             });
 
-            // SignalR Hub映射已移除，改为前端定时轮询API
+            // SignalR Hub mapping removed, changed to frontend polling API at intervals
 
             app.MapControllers();
 
-            //// 映射SignalR Hub
+            //// Map SignalR Hub
             //app.MapHub<RealTimeDataHub>("/api/real-time-data");
 
-            // 执行数据库迁移
+            // Execute database migrations
             await ExecuteDatabaseMigrationsAsync(app);
 
             bool needSeed = !builder.Configuration.GetValue<bool>("SeedData");
             if (needSeed)
             {
-                // 初始化默认数据
+                // Initialize default data
                 await SeedDatabaseAsync(app);
                 ConfigHelper.UpdateSeedData(true);
             }
@@ -586,20 +586,20 @@ namespace NextAdmin.API
                 var success = await migrationService.ExecuteMigrationsAsync();
                 if (success)
                 {
-                    LogHelper.Info("数据库迁移执行完成");
+                    LogHelper.Info("Database migration execution completed");
                 }
                 else
                 {
-                    LogHelper.Error("数据库迁移执行失败");
+                    LogHelper.Error("Database migration execution failed");
                 }
 
-                // 初始化系统数据
+                // Initialize system data
                 var seederService = services.GetRequiredService<DataSeederService>();
                 await seederService.SeedAsync();
             }
             catch (Exception ex)
             {
-                LogHelper.Error("执行数据库迁移时发生错误", ex);
+                LogHelper.Error("Error occurred during database migration", ex);
             }
         }
 

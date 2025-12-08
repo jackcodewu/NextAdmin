@@ -13,10 +13,10 @@ namespace NextAdmin.Application.Mappings
     public class AutoMapperProfile : Profile
     {
         /// <summary>
-        /// 安全解析JSON字符串，性能优化版本
+        /// Safely parse JSON string, performance optimized version
         /// </summary>
-        /// <param name="jsonString">JSON字符串</param>
-        /// <returns>解析后的对象</returns>
+        /// <param name="jsonString">JSON string</param>
+        /// <returns>Parsed object</returns>
         private static object ParseJsonSafely(string jsonString)
         {
             if (string.IsNullOrWhiteSpace(jsonString))
@@ -24,7 +24,7 @@ namespace NextAdmin.Application.Mappings
 
             try
             {
-                // 使用 System.Text.Json 进行快速解析
+                // Use System.Text.Json for fast parsing
                 using var document = System.Text.Json.JsonDocument.Parse(jsonString);
                 return System.Text.Json.JsonSerializer.Deserialize<object>(jsonString);
             }
@@ -36,33 +36,33 @@ namespace NextAdmin.Application.Mappings
 
         public AutoMapperProfile()
         {
-            // 允许映射带有私有 setter 的属性
+            // Allow mapping properties with private setters
            ShouldMapProperty = p => p.GetMethod.IsPublic || (p.SetMethod != null && (p.SetMethod.IsPrivate || p.SetMethod.IsFamily));
 
-            // 全局类型转换器
+            // Global type converters
             CreateMap<string, ObjectId>().ConvertUsing(s => string.IsNullOrEmpty(s) ? ObjectId.Empty : ObjectId.Parse(s));
             CreateMap<ObjectId, string>().ConvertUsing(oid => oid.ToString());
 
 
-            //// 全局枚举与字符串映射
+            //// Global enum and string mapping
             //CreateMap<DeviceStatus, string>().ConvertUsing(e => e.ToString());
             //CreateMap<string, DeviceStatus>().ConvertUsing(s => Enum.Parse<DeviceStatus>(s));
             
 
-            // Role相关
+            // Role-related
             CreateMap<ApplicationRole, RoleDto>().ReverseMap();
             CreateMap<ApplicationRole, RolesDto>().ReverseMap();
             CreateMap<CreateRoleDto, ApplicationRole>().ReverseMap();
                 //.ForMember(dest => dest.TenantId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.TenantId) ? (ObjectId?)null : ObjectId.Parse(src.TenantId))
                 //).ReverseMap();
             
-            // User相关
+            // User-related
             CreateMap<ApplicationUser, UserDto>().ReverseMap();
             CreateMap<ApplicationUser, UsersDto>().ReverseMap();
             CreateMap<CreateUserDto, ApplicationUser>().ReverseMap();
             CreateMap<UpdateUserDto, ApplicationUser>().ReverseMap();
 
-            // Tenant相关
+            // Tenant-related
             CreateMap<Tenant, TenantDto>().ReverseMap();
             CreateMap<CreateTenantDto, Tenant>().ReverseMap();
             CreateMap<UpdateTenantDto, Tenant>().ReverseMap();

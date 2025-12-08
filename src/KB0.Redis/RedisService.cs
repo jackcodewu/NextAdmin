@@ -8,7 +8,7 @@ using StackExchange.Redis;
 namespace NextAdmin.Redis;
 
 /// <summary>
-/// ObjectId的JSON转换器
+/// JSON converter for ObjectId
 /// </summary>
 public class ObjectIdJsonConverter : JsonConverter<ObjectId>
 {
@@ -37,7 +37,7 @@ public class ObjectIdJsonConverter : JsonConverter<ObjectId>
 }
 
 /// <summary>
-/// Redis服务实现类，支持分布式缓存
+/// Redis service implementation with distributed caching support
 /// </summary>
 public class RedisService : IRedisService
 {
@@ -49,7 +49,7 @@ public class RedisService : IRedisService
     private const int RetryDelayMs = 1000;
 
     /// <summary>
-    /// 构造函数
+    /// Constructor
     /// </summary>
     public RedisService(IOptions<RedisOptions> options, IMemoryCache memoryCache)
     {
@@ -79,9 +79,9 @@ public class RedisService : IRedisService
             ConfigCheckSeconds = _options.ConfigCheckSeconds,
             TieBreaker = "",
             DefaultVersion = new Version(6, 0),
-            // 添加重连配置
+            // Add reconnection configuration
             ReconnectRetryPolicy = new ExponentialRetry(5000),
-            // 添加心跳检测
+            // Add heartbeat detection
             HeartbeatInterval =TimeSpan.FromSeconds(300)
         };
 
@@ -90,26 +90,26 @@ public class RedisService : IRedisService
             _connection = ConnectionMultiplexer.Connect(config);
             _connection.ConnectionFailed += (sender, e) =>
             {
-                LogHelper.Error($"Redis连接失败: {e.Exception?.Message}", e.Exception);
+                LogHelper.Error($"Redis connection failed: {e.Exception?.Message}", e.Exception);
             };
             _connection.ConnectionRestored += (sender, e) =>
             {
-                LogHelper.Info("Redis连接已恢复");
+                LogHelper.Info("Redis connection restored");
             };
             _connection.ErrorMessage += (sender, e) =>
             {
-                LogHelper.Error($"Redis错误: {e.Message}");
+                LogHelper.Error($"Redis error: {e.Message}");
             };
         }
         catch (Exception ex)
         {
-            LogHelper.Error("Redis连接初始化失败", ex);
+            LogHelper.Error("Redis connection initialization failed", ex);
             throw;
         }
     }
 
     /// <summary>
-    /// 执行Redis操作，带重试机制
+    /// Execute Redis operation with retry mechanism
     /// </summary>
     private async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, string operationName)
     {
@@ -125,18 +125,18 @@ public class RedisService : IRedisService
                 retryCount++;
                 if (retryCount >= MaxRetryCount)
                 {
-                    LogHelper.Error($"Redis操作失败，已重试{MaxRetryCount}次: {operationName}", ex);
+                    LogHelper.Error($"Redis operation failed after {MaxRetryCount} retries: {operationName}", ex);
                     throw;
                 }
-                LogHelper.Warn($"Redis操作失败，正在进行第{retryCount}次重试: {operationName}");
+                LogHelper.Warn($"Redis operation failed, retry attempt {retryCount}: {operationName}");
                 await Task.Delay(RetryDelayMs * retryCount);
             }
         }
-        throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Redis操作失败，重试次数已用完");
+        throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Redis operation failed, retry attempts exhausted");
     }
 
     /// <summary>
-    /// 获取Redis连接
+    /// Get Redis connection
     /// </summary>
     public IDatabase GetDatabase(int db = -1)
     {
@@ -144,7 +144,7 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 获取Redis服务器
+    /// Get Redis server
     /// </summary>
     public IServer GetServer(string host, int port)
     {
@@ -152,13 +152,13 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 设置字符串值
+    /// Set string value
     /// </summary>
     public async Task<bool> SetStringAsync(string key, string value, TimeSpan? expiry = null)
     {
         var actualExpiry = expiry ?? _options.DefaultExpiry;
         
-        // 写入本地内存缓存
+        // Write to local memory cache
         _memoryCache.Set(key, value, new MemoryCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = actualExpiry
@@ -169,23 +169,23 @@ public class RedisService : IRedisService
             var db = GetDatabase();
             return await db.StringSetAsync(key, value, actualExpiry);
         }, $"SetStringAsync({key})");
-        LogHelper.Debug($"设置字符串值完成: {key}, Redis结果: {redisResult}");
+        LogHelper.Debug($"Set string value completed: {key}, Redis result: {redisResult}");
         return redisResult;
     }
 
     /// <summary>
-    /// 获取字符串值
+    /// Get string value
     /// </summary>
     public async Task<string?> GetStringAsync(string key)
     {
-        // 先查询分布式缓存
+        // Query distributed cache first
         if (_memoryCache.TryGetValue<string>(key, out var cachedValue) && !string.IsNullOrEmpty(cachedValue))
         {
-            LogHelper.Debug($"从分布式缓存获取到值: {key}");
+            LogHelper.Debug($"Value retrieved from distributed cache: {key}");
             return cachedValue;
         }
 
-        // 分布式缓存中没有，查询Redis
+        // Not in distributed cache, query Redis
         return await ExecuteWithRetryAsync(async () =>
         {
             var db = GetDatabase();
@@ -193,12 +193,12 @@ public class RedisService : IRedisService
             if (value.HasValue)
             {
                 var stringValue = (string?)value;
-                // 将Redis的值同步到分布式缓存
+                // Sync value from Redis to distributed cache
                 _memoryCache.Set(key, stringValue, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = _options.DefaultExpiry
                 });
-                LogHelper.Debug($"从Redis获取到值并同步到分布式缓存: {key}");
+                LogHelper.Debug($"Value retrieved from Redis and synced to distributed cache: {key}");
                 return stringValue;
             }
             return null;
@@ -206,14 +206,14 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 设置对象值
+    /// Set object value
     /// </summary>
     public async Task<bool> SetObjectAsync<T>(string key, T value, TimeSpan? expiry = null)
     {
         var actualExpiry = expiry ?? _options.DefaultExpiry;
         var json = JsonConvert.SerializeObject(value, _jsonSetting);
         
-        // 同时设置分布式缓存和Redis
+        // Set both distributed cache and Redis
         _memoryCache.Set(key, json, new MemoryCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = actualExpiry
@@ -224,49 +224,49 @@ public class RedisService : IRedisService
             var db = GetDatabase();
             return await db.StringSetAsync(key, json, actualExpiry);
         }, $"SetObjectAsync({key})");
-        LogHelper.Debug($"设置对象值完成: {key}, Redis结果: {redisResult}");
+        LogHelper.Debug($"Set object value completed: {key}, Redis result: {redisResult}");
         return redisResult;
     }
 
     /// <summary>
-    /// 获取对象值
+    /// Get object value
     /// </summary>
     public async Task<T?> GetObjectAsync<T>(string key)
     {
-        // 先查询分布式缓存
+        // Query distributed cache first
         if (_memoryCache.TryGetValue<string>(key, out var cachedJson) && !string.IsNullOrEmpty(cachedJson))
         {
             try
             {
                 var result = JsonConvert.DeserializeObject<T>(cachedJson, _jsonSetting);
-                LogHelper.Debug($"从分布式缓存获取到对象: {key}");
+                LogHelper.Debug($"Object retrieved from distributed cache: {key}");
                 return result;
             }
             catch (JsonSerializationException ex) when (ex.Message.Contains("ObjectId"))
             {
-                // ObjectId类型转换错误，清除内存和Redis缓存
-                LogHelper.Warn($"从分布式缓存反序列化对象失败(ObjectId类型不匹配): {key}, 清除所有缓存");
+                // ObjectId type conversion error, clear memory and Redis cache
+                LogHelper.Warn($"Failed to deserialize object from distributed cache (ObjectId type mismatch): {key}, clearing all caches");
                 _memoryCache.Remove(key);
                 try
                 {
                     var db = GetDatabase();
                     await db.KeyDeleteAsync(key);
-                    LogHelper.Info($"已清除Redis中的错误缓存: {key}");
+                    LogHelper.Info($"Cleared erroneous cache in Redis: {key}");
                 }
                 catch (Exception deleteEx)
                 {
-                    LogHelper.Error($"清除Redis缓存失败: {key}", deleteEx);
+                    LogHelper.Error($"Failed to clear Redis cache: {key}", deleteEx);
                 }
                 return default;
             }
             catch (Exception ex)
             {
-                LogHelper.Warn($"从分布式缓存反序列化对象失败: {key}, 错误: {ex.Message}");
+                LogHelper.Warn($"Failed to deserialize object from distributed cache: {key}, error: {ex.Message}");
                 _memoryCache.Remove(key);
             }
         }
 
-        // 分布式缓存中没有或反序列化失败，查询Redis
+        // Not in distributed cache or deserialization failed, query Redis
         return await ExecuteWithRetryAsync(async () =>
         {
             var json = await GetStringAsync(key);
@@ -278,34 +278,34 @@ public class RedisService : IRedisService
                 var result = JsonConvert.DeserializeObject<T>(json, _jsonSetting);
                 if (result != null)
                 {
-                    // 将Redis的对象同步到分布式缓存
+                    // Sync object from Redis to distributed cache
                     _memoryCache.Set(key, json, new MemoryCacheEntryOptions
                     {
                         AbsoluteExpirationRelativeToNow = _options.DefaultExpiry
                     });
-                    LogHelper.Debug($"从Redis获取到对象并同步到分布式缓存: {key}");
+                    LogHelper.Debug($"Object retrieved from Redis and synced to distributed cache: {key}");
                 }
                 return result;
             }
             catch (JsonSerializationException ex) when (ex.Message.Contains("ObjectId"))
             {
-                // ObjectId类型转换错误，清除内存和Redis缓存
-                LogHelper.Warn($"从Redis反序列化对象失败(ObjectId类型不匹配): {key}, 清除所有缓存");
+                // ObjectId type conversion error, clear memory and Redis cache
+                LogHelper.Warn($"Failed to deserialize object from Redis (ObjectId type mismatch): {key}, clearing all caches");
                 _memoryCache.Remove(key);
                 var db = GetDatabase();
                 await db.KeyDeleteAsync(key);
-                LogHelper.Info($"已清除Redis中的错误缓存: {key}");
+                LogHelper.Info($"Cleared erroneous cache in Redis: {key}");
                 return default;
             }
         }, $"GetObjectAsync({key})");
     }
 
     /// <summary>
-    /// 删除键
+    /// Delete key
     /// </summary>
     public async Task<bool> DeleteAsync(string key)
     {
-        // 同时删除分布式缓存和Redis
+        // Delete from both distributed cache and Redis
         _memoryCache.Remove(key);
 
         var redisResult = await ExecuteWithRetryAsync(async () =>
@@ -313,30 +313,30 @@ public class RedisService : IRedisService
             var db = GetDatabase();
             return await db.KeyDeleteAsync(key);
         }, $"DeleteAsync({key})");
-        LogHelper.Debug($"删除键完成: {key}, Redis结果: {redisResult}");
+        LogHelper.Debug($"Delete key completed: {key}, Redis result: {redisResult}");
         return redisResult;
     }
 
     /// <summary>
-    /// 判断键是否存在
+    /// Check if key exists
     /// </summary>
     public async Task<bool> ExistsAsync(string key)
     {
-        // 先查询分布式缓存
+        // Query distributed cache first
         if (_memoryCache.TryGetValue<string>(key, out var cachedValue) && !string.IsNullOrEmpty(cachedValue))
         {
-            LogHelper.Debug($"从分布式缓存确认键存在: {key}");
+            LogHelper.Debug($"Key confirmed to exist in distributed cache: {key}");
             return true;
         }
 
-        // 分布式缓存中没有，查询Redis
+        // Not in distributed cache, query Redis
         return await ExecuteWithRetryAsync(async () =>
         {
             var db = GetDatabase();
             var exists = await db.KeyExistsAsync(key);
             if (exists)
             {
-                // 如果Redis中存在，尝试同步到分布式缓存
+                // If exists in Redis, try to sync to distributed cache
                 try
                 {
                     var value = await db.StringGetAsync(key);
@@ -346,12 +346,12 @@ public class RedisService : IRedisService
                         {
                             AbsoluteExpirationRelativeToNow = _options.DefaultExpiry
                         });
-                        LogHelper.Debug($"从Redis同步键到分布式缓存: {key}");
+                        LogHelper.Debug($"Synced key from Redis to distributed cache: {key}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogHelper.Warn($"同步键到分布式缓存失败: {key}, 错误: {ex.Message}");
+                    LogHelper.Warn($"Failed to sync key to distributed cache: {key}, error: {ex.Message}");
                 }
             }
             return exists;
@@ -359,11 +359,11 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 设置过期时间
+    /// Set expiration time
     /// </summary>
     public async Task<bool> ExpireAsync(string key, TimeSpan? expiry)
     {
-        // 同时设置Redis和分布式缓存的过期时间
+        // Set expiration time for both Redis and distributed cache
         if (expiry.HasValue)
         {
             try
@@ -374,12 +374,12 @@ public class RedisService : IRedisService
                     {
                         AbsoluteExpirationRelativeToNow = expiry.Value
                     });
-                    LogHelper.Debug($"更新分布式缓存过期时间: {key}, 过期时间: {expiry.Value}");
+                    LogHelper.Debug($"Updated distributed cache expiration time: {key}, expiry: {expiry.Value}");
                 }
             }
             catch (Exception ex)
             {
-                LogHelper.Warn($"更新分布式缓存过期时间失败: {key}, 错误: {ex.Message}");
+                LogHelper.Warn($"Failed to update distributed cache expiration time: {key}, error: {ex.Message}");
             }
         }
 
@@ -388,23 +388,23 @@ public class RedisService : IRedisService
             var db = GetDatabase();
             return await db.KeyExpireAsync(key, expiry);
         }, $"ExpireAsync({key})");
-        LogHelper.Debug($"设置过期时间完成: {key}, Redis结果: {redisResult}");
+        LogHelper.Debug($"Set expiration time completed: {key}, Redis result: {redisResult}");
         return redisResult;
     }
 
     /// <summary>
-    /// 获取过期时间
+    /// Get expiration time
     /// </summary>
     public async Task<TimeSpan?> GetExpiryAsync(string key)
     {
-        // 先查询分布式缓存
+        // Query distributed cache first
         if (_memoryCache.TryGetValue<string>(key, out var cachedValue) && !string.IsNullOrEmpty(cachedValue))
         {
-            // 分布式缓存存在，但无法直接获取过期时间，需要查询Redis
-            LogHelper.Debug($"从分布式缓存确认键存在，查询Redis获取过期时间: {key}");
+            // Distributed cache exists, but cannot get expiration time directly, need to query Redis
+            LogHelper.Debug($"Key confirmed to exist in distributed cache, querying Redis for expiration time: {key}");
         }
 
-        // 查询Redis获取过期时间
+        // Query Redis to get expiration time
         return await ExecuteWithRetryAsync(async () =>
         {
             var db = GetDatabase();
@@ -413,16 +413,16 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 获取所有键（支持通配符，如 user:*、*:suffix、*contains*）。使用配置的默认数据库。
+    /// Get all keys (supports wildcards, e.g. user:*, *:suffix, *contains*). Uses the configured default database.
     /// </summary>
     public Task<string[]> GetAllKeysAsync(string pattern = "*") => GetAllKeysAsync(pattern, _options.DefaultDatabase, 500);
 
     /// <summary>
-    /// 获取所有键（带数据库与分页大小）。注意：遍历键成本较高，谨慎在生产环境大规模使用。
+    /// Get all keys (with database and page size). Note: Traversing keys is expensive, use cautiously in production at scale.
     /// </summary>
-    /// <param name="pattern">通配符模式（glob），例如：user:*, *:123, *order*, ? 替单字符, [ab] 集合</param>
-    /// <param name="db">数据库编号，默认使用配置的 DefaultDatabase</param>
-    /// <param name="pageSize">SCAN 步长，默认 500</param>
+    /// <param name="pattern">Wildcard pattern (glob), e.g.: user:*, *:123, *order*, ? for single character, [ab] for set</param>
+    /// <param name="db">Database number, defaults to the configured DefaultDatabase</param>
+    /// <param name="pageSize">SCAN step size, default 500</param>
     public async Task<string[]> GetAllKeysAsync(string pattern, int? db, int pageSize = 500)
     {
         var database = db ?? _options.DefaultDatabase;
@@ -442,11 +442,11 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 清空当前数据库
+    /// Flush current database
     /// </summary>
     public async Task FlushDatabaseAsync()
     {
-        // 清空Redis数据库
+        // Flush Redis database
         var flushRedisTask = ExecuteWithRetryAsync(async () =>
         {
             var db = GetDatabase();
@@ -454,15 +454,15 @@ public class RedisService : IRedisService
             return true;
         }, "FlushDatabaseAsync");
 
-        // 清空分布式缓存（注意：分布式缓存通常无法清空所有键，这里只是记录日志）
-        LogHelper.Info("清空Redis数据库，建议手动清理分布式缓存");
+        // Flush distributed cache (Note: distributed cache usually cannot clear all keys, just logging here)
+        LogHelper.Info("Flushing Redis database, recommend manually clearing distributed cache");
 
         await flushRedisTask;
-        LogHelper.Debug("清空数据库完成");
+        LogHelper.Debug("Flush database completed");
     }
 
     /// <summary>
-    /// 获取服务器信息
+    /// Get server information
     /// </summary>
     public async Task<Dictionary<string, string>> GetServerInfoAsync()
     {
@@ -485,43 +485,43 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 同步分布式缓存和Redis
+    /// Sync distributed cache with Redis
     /// </summary>
     public async Task SyncDistributedCacheAsync(string key)
     {
         try
         {
-            // 从Redis获取值
+            // Get value from Redis
             var db = GetDatabase();
             var value = await db.StringGetAsync(key);
             if (value.HasValue)
             {
-                // 同步到分布式缓存
+                // Sync to distributed cache
                 _memoryCache.Set(key, value.ToString(), new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = _options.DefaultExpiry
                 });
-                LogHelper.Debug($"同步键到分布式缓存: {key}");
+                LogHelper.Debug($"Synced key to distributed cache: {key}");
             }
         }
         catch (Exception ex)
         {
-            LogHelper.Warn($"同步键到分布式缓存失败: {key}, 错误: {ex.Message}");
+            LogHelper.Warn($"Failed to sync key to distributed cache: {key}, error: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// 批量同步分布式缓存和Redis
+    /// Batch sync distributed cache with Redis
     /// </summary>
     public async Task SyncDistributedCacheBatchAsync(string[] keys)
     {
         var tasks = keys.Select(key => SyncDistributedCacheAsync(key));
         await Task.WhenAll(tasks);
-        LogHelper.Debug($"批量同步完成，共{keys.Length}个键");
+        LogHelper.Debug($"Batch sync completed, total {keys.Length} keys");
     }
 
     /// <summary>
-    /// 设置Hash字段值
+    /// Set hash field value
     /// </summary>
     public async Task<bool> SetHashAsync(string key, string field, string value)
     {
@@ -533,7 +533,7 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 获取Hash字段值
+    /// Get hash field value
     /// </summary>
     public async Task<string?> GetHashAsync(string key, string field)
     {
@@ -546,7 +546,7 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 删除Hash字段
+    /// Delete hash field
     /// </summary>
     public async Task<bool> DeleteHashFieldAsync(string key, string field)
     {
@@ -558,7 +558,7 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 设置键的过期时间
+    /// Set key expiration time
     /// </summary>
     public async Task<bool> SetExpiryAsync(string key, TimeSpan expiry)
     {
@@ -566,7 +566,7 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// 释放资源
+    /// Dispose resources
     /// </summary>
     public async ValueTask DisposeAsync()
     {

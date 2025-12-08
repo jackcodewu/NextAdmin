@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 namespace NextAdmin.API.Extensions
 {
     /// <summary>
-    /// 一个操作模型约定，用于为所有继承自泛型BaseController的控制器的Action自动应用授权策略。
+    /// An action model convention that automatically applies authorization policies to all Actions of controllers inheriting from the generic BaseController.
     /// </summary>
     public class ActionAuthorizeConvention : IActionModelConvention
     {
@@ -13,7 +13,7 @@ namespace NextAdmin.API.Extensions
         {
             var controller = action.Controller;
 
-            // 只对所有继承自泛型 BaseController<,,,,,> 的控制器生效（支持多层继承）
+            // Only effective for controllers inheriting from generic BaseController<,,,,,> (supports multi-level inheritance)
             var type = controller.ControllerType.AsType();
             while (type != null)
             {
@@ -28,7 +28,7 @@ namespace NextAdmin.API.Extensions
                 return;
             }
 
-            // 获取实体名
+            // Get entity name
             var entityName = type.GetGenericArguments().First().Name;
 
             var actionName = action.ActionName;

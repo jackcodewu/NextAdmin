@@ -10,56 +10,56 @@ namespace NextAdmin.Application.DTOs
     public class AuthDtos
     {
         public sealed record LoginRequest(
-            [Required(ErrorMessage = "用户名不能为空")]
-            [StringLength(50, ErrorMessage = "用户名长度不能超过50个字符")]
+            [Required(ErrorMessage = "Username cannot be empty")]
+            [StringLength(50, ErrorMessage = "Username length cannot exceed 50 characters")]
             string UserName,
             
-            [Required(ErrorMessage = "密码不能为空")]
+            [Required(ErrorMessage = "Password cannot be empty")]
             string Password,
             
             /// <summary>
-            /// 滑动验证码Token
+            /// Sliding captcha token
             /// </summary>
-            //[Required(ErrorMessage = "验证码Token不能为空")]
+            //[Required(ErrorMessage = "Captcha token cannot be empty")]
             string? CaptchaToken,
             
             /// <summary>
-            /// 滑动验证码X坐标
+            /// Sliding captcha X coordinate
             /// </summary>
-            //[Required(ErrorMessage = "验证码X坐标不能为空")]
+            //[Required(ErrorMessage = "Captcha X coordinate cannot be empty")]
             int? CaptchaX,
             
             /// <summary>
-            /// 滑动验证码轨迹
+            /// Sliding captcha track
             /// </summary>
-            //[Required(ErrorMessage = "验证码轨迹不能为空")]
+            //[Required(ErrorMessage = "Captcha track cannot be empty")]
             string? CaptchaTrack,
 
             /// <summary>
-            /// 是否记住我
+            /// Remember me
             /// </summary>
             bool RememberMe = false,
 
             /// <summary>
-            /// 是否是移动端
+            /// Is mobile
             /// </summary>
             bool IsMobile = true
         );
 
         public sealed record RegisterRequest(
-            [Required(ErrorMessage = "用户名不能为空")]
-            [StringLength(50, ErrorMessage = "用户名长度不能超过50个字符")]
+            [Required(ErrorMessage = "Username cannot be empty")]
+            [StringLength(50, ErrorMessage = "Username length cannot exceed 50 characters")]
             string UserName,
             
-            [Required(ErrorMessage = "邮箱不能为空")]
-            [EmailAddress(ErrorMessage = "邮箱格式不正确")]
+            [Required(ErrorMessage = "Email cannot be empty")]
+            [EmailAddress(ErrorMessage = "Invalid email format")]
             string Email,
             
-            [Required(ErrorMessage = "密码不能为空")]
-            [StringLength(100, MinimumLength = 6, ErrorMessage = "密码长度必须在6-100个字符之间")]
+            [Required(ErrorMessage = "Password cannot be empty")]
+            [StringLength(100, MinimumLength = 6, ErrorMessage = "Password length must be between 6-100 characters")]
             string Password,
             
-            [Required(ErrorMessage = "确认密码不能为空")]
+            [Required(ErrorMessage = "Confirm password cannot be empty")]
             string ConfirmPassword,
             
             string? FirstName = null,
@@ -72,7 +72,7 @@ namespace NextAdmin.Application.DTOs
             {
                 if (Password != ConfirmPassword)
                 {
-                    yield return new ValidationResult("密码和确认密码不匹配", [nameof(ConfirmPassword)]);
+                    yield return new ValidationResult("Password and confirm password do not match", [nameof(ConfirmPassword)]);
                 }
             }
         }
@@ -101,59 +101,59 @@ namespace NextAdmin.Application.DTOs
         );
 
         public sealed record ChangePasswordRequest(
-            [Required(ErrorMessage = "当前密码不能为空")]
+            [Required(ErrorMessage = "Current password cannot be empty")]
             string CurrentPassword,
             
-            [Required(ErrorMessage = "新密码不能为空")]
-            [StringLength(100, MinimumLength = 6, ErrorMessage = "新密码长度必须在6-100个字符之间")]
+            [Required(ErrorMessage = "New password cannot be empty")]
+            [StringLength(100, MinimumLength = 6, ErrorMessage = "New password length must be between 6-100 characters")]
             string NewPassword
         );
 
         public sealed record RefreshTokenRequest(
-            [Required(ErrorMessage = "令牌不能为空")]
+            [Required(ErrorMessage = "Token cannot be empty")]
             string Token
         );
 
         /// <summary>
-        /// 会员登录请求
+        /// Member login request
         /// </summary>
         public sealed record MemberLoginRequest(
-            [Required(ErrorMessage = "用户名/邮箱/手机号不能为空")]
-            [StringLength(100, ErrorMessage = "长度不能超过100个字符")]
+            [Required(ErrorMessage = "Username/Email/Phone cannot be empty")]
+            [StringLength(100, ErrorMessage = "Length cannot exceed 100 characters")]
             string Account,
             
-            [Required(ErrorMessage = "密码不能为空")]
+            [Required(ErrorMessage = "Password cannot be empty")]
             string Password,
             
             /// <summary>
-            /// 是否记住我
+            /// Remember me
             /// </summary>
             bool RememberMe = false
         );
 
         /// <summary>
-        /// 会员注册请求
+        /// Member registration request
         /// </summary>
         public sealed record MemberRegisterRequest(
-            [Required(ErrorMessage = "用户名不能为空")]
-            [StringLength(50, MinimumLength = 2, ErrorMessage = "用户名长度必须在2-50个字符之间")]
+            [Required(ErrorMessage = "Username cannot be empty")]
+            [StringLength(50, MinimumLength = 2, ErrorMessage = "Username length must be between 2-50 characters")]
             string Username,
             
-            [Required(ErrorMessage = "昵称不能为空")]
-            [StringLength(50, MinimumLength = 2, ErrorMessage = "昵称长度必须在2-50个字符之间")]
+            [Required(ErrorMessage = "Nickname cannot be empty")]
+            [StringLength(50, MinimumLength = 2, ErrorMessage = "Nickname length must be between 2-50 characters")]
             string Nickname,
             
-            [Required(ErrorMessage = "密码不能为空")]
-            [StringLength(100, MinimumLength = 6, ErrorMessage = "密码长度必须在6-100个字符之间")]
+            [Required(ErrorMessage = "Password cannot be empty")]
+            [StringLength(100, MinimumLength = 6, ErrorMessage = "Password length must be between 6-100 characters")]
             string Password,
             
-            [Required(ErrorMessage = "确认密码不能为空")]
+            [Required(ErrorMessage = "Confirm password cannot be empty")]
             string ConfirmPassword,
             
-            [EmailAddress(ErrorMessage = "邮箱格式不正确")]
+            [EmailAddress(ErrorMessage = "Invalid email format")]
             string? Email = null,
             
-            [Phone(ErrorMessage = "手机号格式不正确")]
+            [Phone(ErrorMessage = "Invalid phone number format")]
             string? Phone = null,
             
             string? CurrentGrade = null,
@@ -165,13 +165,13 @@ namespace NextAdmin.Application.DTOs
             {
                 if (Password != ConfirmPassword)
                 {
-                    yield return new ValidationResult("密码和确认密码不匹配", [nameof(ConfirmPassword)]);
+                    yield return new ValidationResult("Password and confirm password do not match", [nameof(ConfirmPassword)]);
                 }
             }
         };
 
         /// <summary>
-        /// 会员信息
+        /// Member information
         /// </summary>
         public sealed record MemberInfo(
             string Id,
@@ -192,7 +192,7 @@ namespace NextAdmin.Application.DTOs
         );
 
         /// <summary>  
-        /// 会员认证响应（包含会员信息）
+        /// Member authentication response (includes member information)
         /// </summary>
         public sealed record MemberAuthResponse(
             bool Success,

@@ -1,40 +1,40 @@
 namespace NextAdmin.Common.Interfaces.Services
 {
     /// <summary>
-    /// 缓存服务接口
+    /// Cache service interface
     /// </summary>
     public interface ICacheService
     {
         /// <summary>
-        /// 获取缓存值
+        /// Get cached value
         /// </summary>
-        /// <typeparam name="T">值类型</typeparam>
-        /// <param name="key">缓存键</param>
-        /// <returns>缓存值</returns>
+        /// <typeparam name="T">Value type</typeparam>
+        /// <param name="key">Cache key</param>
+        /// <returns>Cached value</returns>
         Task<T?> GetAsync<T>(string key);
 
         /// <summary>
-        /// 设置缓存值
+        /// Set cached value
         /// </summary>
-        /// <typeparam name="T">值类型</typeparam>
-        /// <param name="key">缓存键</param>
-        /// <param name="value">缓存值</param>
-        /// <param name="expiration">过期时间</param>
-        /// <returns>设置结果</returns>
+        /// <typeparam name="T">Value type</typeparam>
+        /// <param name="key">Cache key</param>
+        /// <param name="value">Cache value</param>
+        /// <param name="expiration">Expiration time</param>
+        /// <returns>Set result</returns>
         Task<bool> SetAsync<T>(string key, T value, TimeSpan? expiration = null);
 
         /// <summary>
-        /// 删除缓存值
+        /// Remove cached value
         /// </summary>
-        /// <param name="key">缓存键</param>
-        /// <returns>删除结果</returns>
+        /// <param name="key">Cache key</param>
+        /// <returns>Remove result</returns>
         Task<bool> RemoveAsync(string key);
 
         /// <summary>
-        /// 检查缓存键是否存在
+        /// Check if cache key exists
         /// </summary>
-        /// <param name="key">缓存键</param>
-        /// <returns>是否存在</returns>
+        /// <param name="key">Cache key</param>
+        /// <returns>Whether exists</returns>
         Task<bool> ExistsAsync(string key);
     }
 } 

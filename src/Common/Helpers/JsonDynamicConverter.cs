@@ -3,16 +3,16 @@ using System.Text.Json;
 namespace NextAdmin.Common.Helpers
 {
     /// <summary>
-    /// 将 System.Text.Json 解析得到的 JsonElement / 原始 JSON 字符串 转换为 仅包含
-    /// Dictionary<string, object>, List<object>, 基础类型(string/long/double/bool/null) 的纯净对象图，
-    /// 以保证 MongoDB C# Driver 默认序列化器完全支持。
+    /// Converts JsonElement parsed by System.Text.Json or raw JSON string into a clean object graph
+    /// containing only Dictionary<string, object>, List<object>, and primitive types (string/long/double/bool/null)
+    /// to ensure full support by MongoDB C# Driver's default serializer.
     /// </summary>
     public static class JsonDynamicConverter
     {
         /// <summary>
-        /// 从原始 JSON 字符串解析并转换为纯净对象图。
-        /// 若无效 JSON：返回一个包含 raw 字段的字典 { "raw" : 原文 }。
-        /// 兼容可能的 PHP serialize(a:...) 字符串：包装为 { "phpSerialized": 原文 }
+        /// Parse raw JSON string and convert to clean object graph.
+        /// For invalid JSON: returns a dictionary with raw field { "raw" : original text }.
+        /// Compatible with possible PHP serialize(a:...) strings: wraps as { "phpSerialized": original text }
         /// </summary>
         public static object ParseToPlainObject(string raw)
         {
@@ -22,7 +22,7 @@ namespace NextAdmin.Common.Helpers
             }
             raw = raw.Trim();
 
-            // PHP serialize 简单判定
+            // Simple PHP serialize detection
             if (raw.StartsWith("a:") && raw.Contains(";"))
             {
                 return new Dictionary<string, object>
@@ -46,7 +46,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 将 JsonElement 递归转换为 Dictionary/List/primitive。
+        /// Recursively convert JsonElement to Dictionary/List/primitive.
         /// </summary>
         public static object? ToPlainObject(JsonElement element)
         {
@@ -67,7 +67,7 @@ namespace NextAdmin.Common.Helpers
                     }
                     return list;
                 case JsonValueKind.String:
-                    // 尝试进一步解析成 Guid / DateTime / DateTimeOffset / 数字 字符串? 这里保持原样，避免隐式格式改变
+                    // Try to further parse as Guid / DateTime / DateTimeOffset / numeric strings? Keep as-is here to avoid implicit format changes
                     return element.GetString();
                 case JsonValueKind.Number:
                     if (element.TryGetInt64(out long l)) return l;

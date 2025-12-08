@@ -1,62 +1,62 @@
 namespace NextAdmin.Common.Interfaces.Services
 {
     /// <summary>
-    /// 性能监控服务接口
+    /// Performance monitoring service interface
     /// </summary>
     public interface IPerformanceMonitoringService
     {
         /// <summary>
-        /// 开始监控
+        /// Start monitoring
         /// </summary>
-        /// <param name="operationName">操作名称</param>
-        /// <returns>监控ID</returns>
+        /// <param name="operationName">Operation name</param>
+        /// <returns>Monitoring ID</returns>
         string StartMonitoring(string operationName);
 
         /// <summary>
-        /// 结束监控
+        /// Stop monitoring
         /// </summary>
-        /// <param name="monitoringId">监控ID</param>
+        /// <param name="monitoringId">Monitoring ID</param>
         void StopMonitoring(string monitoringId);
 
         /// <summary>
-        /// 获取性能指标
+        /// Get performance metrics
         /// </summary>
-        /// <returns>性能指标列表</returns>
+        /// <returns>List of performance metrics</returns>
         Task<List<PerformanceMetric>> GetMetricsAsync();
     }
 
     /// <summary>
-    /// 性能指标
+    /// Performance metric
     /// </summary>
     public class PerformanceMetric
     {
         /// <summary>
-        /// 操作名称
+        /// Operation name
         /// </summary>
         public string OperationName { get; set; } = string.Empty;
 
         /// <summary>
-        /// 执行时间（毫秒）
+        /// Execution time (milliseconds)
         /// </summary>
         public long ExecutionTime { get; set; }
 
         /// <summary>
-        /// 开始时间
+        /// Start time
         /// </summary>
         public DateTime StartTime { get; set; }
 
         /// <summary>
-        /// 结束时间
+        /// End time
         /// </summary>
         public DateTime EndTime { get; set; }
 
         /// <summary>
-        /// 是否成功
+        /// Whether successful
         /// </summary>
         public bool IsSuccess { get; set; }
 
         /// <summary>
-        /// 错误信息
+        /// Error message
         /// </summary>
         public string? ErrorMessage { get; set; }
     }

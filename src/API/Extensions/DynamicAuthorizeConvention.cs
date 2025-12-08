@@ -15,7 +15,7 @@ namespace NextAdmin.API.Extensions
                 var entityType = controller.ControllerType.GenericTypeArguments[0];
                 var entityName = entityType.Name;
 
-                // 针对每个Action动态添加Policy
+                // Add Policy dynamically for each Action
                 foreach (var action in controller.Actions)
                 {
                     string policy = action.ActionName switch

@@ -5,18 +5,18 @@ using MongoDB.Bson;
 namespace NextAdmin.Infrastructure.Data;
 
 /// <summary>
-/// 会员相关数据库种子数据
+/// Member-related database seed data
 /// </summary>
 public static class MemberDataSeeder
 {
     /// <summary>
-    /// 初始化会员角色
+    /// Initialize member role
     /// </summary>
     public static async Task SeedMemberRoleAsync(RoleManager<ApplicationRole> roleManager)
     {
         const string roleName = "Member";
         
-        // 检查角色是否已存在
+        // Check if the role already exists
         var roleExists = await roleManager.RoleExistsAsync(roleName);
         if (!roleExists)
         {
@@ -24,7 +24,7 @@ public static class MemberDataSeeder
             {
                 Name = roleName,
                 NormalizedName = roleName.ToUpper(),
-                Description = "普通会员角色",
+                Description = "Regular member role",
                 TenantId = ObjectId.Empty,
                 TenantName = "System",
                 IsSystemRole = false
@@ -33,21 +33,21 @@ public static class MemberDataSeeder
             var result = await roleManager.CreateAsync(memberRole);
             if (result.Succeeded)
             {
-                Console.WriteLine($"会员角色 '{roleName}' 创建成功");
+                Console.WriteLine($"Member role '{roleName}' created successfully");
             }
             else
             {
-                Console.WriteLine($"会员角色 '{roleName}' 创建失败: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                Console.WriteLine($"Failed to create member role '{roleName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
             }
         }
         else
         {
-            Console.WriteLine($"会员角色 '{roleName}' 已存在");
+            Console.WriteLine($"Member role '{roleName}' already exists");
         }
     }
 
     /// <summary>
-    /// 初始化VIP会员角色
+    /// Initialize VIP member role
     /// </summary>
     public static async Task SeedVipMemberRoleAsync(RoleManager<ApplicationRole> roleManager)
     {
@@ -60,7 +60,7 @@ public static class MemberDataSeeder
             {
                 Name = roleName,
                 NormalizedName = roleName.ToUpper(),
-                Description = "VIP会员角色",
+                Description = "VIP member role",
                 TenantId = ObjectId.Empty,
                 TenantName = "System",
                 IsSystemRole = false
@@ -69,21 +69,21 @@ public static class MemberDataSeeder
             var result = await roleManager.CreateAsync(vipRole);
             if (result.Succeeded)
             {
-                Console.WriteLine($"VIP会员角色 '{roleName}' 创建成功");
+                Console.WriteLine($"VIP member role '{roleName}' created successfully");
             }
             else
             {
-                Console.WriteLine($"VIP会员角色 '{roleName}' 创建失败: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                Console.WriteLine($"Failed to create VIP member role '{roleName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
             }
         }
         else
         {
-            Console.WriteLine($"VIP会员角色 '{roleName}' 已存在");
+            Console.WriteLine($"VIP member role '{roleName}' already exists");
         }
     }
 
     /// <summary>
-    /// 初始化所有会员相关角色
+    /// Initialize all member-related roles
     /// </summary>
     public static async Task SeedAllMemberRolesAsync(RoleManager<ApplicationRole> roleManager)
     {

@@ -6,35 +6,35 @@ using System.ComponentModel.DataAnnotations;
 namespace NextAdmin.Application.DTOs;
 
 /// <summary>
-/// 更新用户DTO
+/// Update user DTO
 /// </summary>
 public class UpdateUserDto
 {
 
     /// <summary>
-    /// 主键ID
+    /// Primary key ID
     /// </summary>
-    [Required(ErrorMessage = "主键不能为空")]
-    [StringLength(30, ErrorMessage = "主键长度不能超过30")]
+    [Required(ErrorMessage = "Primary key cannot be empty")]
+    [StringLength(30, ErrorMessage = "Primary key length cannot exceed 30")]
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; } = string.Empty;
 
     /// <summary>
-    /// 用户名
+    /// Username
     /// </summary>
-    [Required(ErrorMessage = "用户名不能为空")]
-    [StringLength(50, ErrorMessage = "用户名长度不能超过50个字符")]
+    [Required(ErrorMessage = "Username cannot be empty")]
+    [StringLength(50, ErrorMessage = "Username length cannot exceed 50 characters")]
     public required string UserName { get; set; }
 
     /// <summary>
-    /// 密码
+    /// Password
     /// </summary>
-    [Required(ErrorMessage = "密码不能为空")]
-    [StringLength(100, MinimumLength = 6, ErrorMessage = "密码长度必须在6-100个字符之间")]
+    [Required(ErrorMessage = "Password cannot be empty")]
+    [StringLength(100, MinimumLength = 6, ErrorMessage = "Password length must be between 6-100 characters")]
     public required string Password { get; set; }
 
     /// <summary>
-    /// 用户角色ID列表
+    /// User role ID list
     /// </summary>
     public List<string> RoleIds { get; set; } = new();
 } 

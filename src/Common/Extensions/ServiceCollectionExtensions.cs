@@ -8,7 +8,7 @@ namespace NextAdmin.Common.Extensions
     {
         public static IServiceCollection AddCommonServices(this IServiceCollection services)
         {
-            // 注册通用服务 - Temporarily commented out as implementations are missing/misplaced
+            // Register common services - Temporarily commented out as implementations are missing/misplaced
             // services.AddScoped<ICacheService, CacheService>();
             // services.AddScoped<ILoggingService, LoggingService>();
             // services.AddScoped<IValidationService, ValidationService>();

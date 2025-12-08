@@ -4,59 +4,59 @@ using NextAdmin.Application.DTOs.Bases;
 namespace NextAdmin.Application.DTOs;
 
 /// <summary>
-/// 用户DTO
+/// User DTO
 /// </summary>
 public class UserDto : BaseDto
 {
     /// <summary>
-    /// 用户名
+    /// Username
     /// </summary>
     public required string UserName { get; set; }
 
     /// <summary>
-    /// 邮箱
+    /// Email
     /// </summary>
     public required string Email { get; set; }
 
     /// <summary>
-    /// 姓
+    /// First name
     /// </summary>
     public string? FirstName { get; set; }
 
     /// <summary>
-    /// 名
+    /// Last name
     /// </summary>
     public string? LastName { get; set; }
 
     /// <summary>
-    /// 显示名称
+    /// Display name
     /// </summary>
     public string? DisplayName { get; set; }
 
     /// <summary>
-    /// 部门
+    /// Department
     /// </summary>
     public string? Department { get; set; }
 
     /// <summary>
-    /// 职位
+    /// Position
     /// </summary>
     public string? Position { get; set; }
 
     /// <summary>
-    /// 是否激活
+    /// Is active
     /// </summary>
     public bool IsActive { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// 用户角色
+    /// User roles
     /// </summary>
     public List<string> Roles { get; set; } = new();
 
     /// <summary>
-    /// 最后登录时间
+    /// Last login time
     /// </summary>
     public DateTime? LastLoginTime { get; set; }
 

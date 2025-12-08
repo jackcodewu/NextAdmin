@@ -18,21 +18,21 @@ using Microsoft.Extensions.DependencyInjection;
 namespace NextAdmin.Application.Extensions
 {
     /// <summary>
-    /// 应用服务自动注册扩展
-    /// 自动为继承 AggregateRoot 的实体生成并注册应用服务
-    /// 支持生成分部类以扩展已存在的自定义服务
+    /// Application service auto-registration extension
+    /// Automatically generates and registers application services for entities inheriting AggregateRoot
+    /// Supports generating partial classes to extend existing custom services
     /// </summary>
     public static class AppServiceAutoRegistration
     {
         /// <summary>
-        /// 自动注册所有应用服务
-        /// 扫描所有继承 AggregateRoot 的实体，自动注册对应的 AppService
-        /// 如果自定义服务已存在，则生成分部类文件
+        /// Auto-register all application services
+        /// Scan all entities inheriting AggregateRoot and automatically register corresponding AppService
+        /// If custom service already exists, generate partial class file
         /// </summary>
-        /// <param name="services">服务集合</param>
-        /// <param name="generatePartialClasses">是否生成分部类文件（默认：true）</param>
-        /// <param name="outputDirectory">分部类输出目录（默认：Application/Services/Generated）</param>
-        /// <param name="assemblies">要扫描的程序集</param>
+        /// <param name="services">Service collection</param>
+        /// <param name="generatePartialClasses">Whether to generate partial class files (default: true)</param>
+        /// <param name="outputDirectory">Partial class output directory (default: Application/Services/Generated)</param>
+        /// <param name="assemblies">Assemblies to scan</param>
         public static IServiceCollection AddAutoAppServices(
             this IServiceCollection services,
             bool generatePartialClasses = true,
@@ -48,10 +48,10 @@ namespace NextAdmin.Application.Extensions
                 };
             }
 
-            // 设置默认输出目录
+            // Set default output directoryult output directory
             if (string.IsNullOrEmpty(outputDirectory))
             {
-                // 获取 Application 项目的根目录
+                // Get Application project root directory
                 var appAssembly = assemblies.FirstOrDefault(a => a.GetName().Name == "NextAdmin.Application");
                 if (appAssembly != null)
                 {
@@ -67,26 +67,26 @@ namespace NextAdmin.Application.Extensions
                 }
             }
 
-            // 确保输出目录存在
+            // Ensure output directory exists
             if (generatePartialClasses && !Directory.Exists(outputDirectory))
             {
                 Directory.CreateDirectory(outputDirectory);
             }
 
-            Console.WriteLine("=== 应用服务自动注册 ===");
+            Console.WriteLine("=== Application Service Auto-Registration ===");
             if (generatePartialClasses)
             {
-                Console.WriteLine($"📁 分部类输出目录: {outputDirectory}");
+                Console.WriteLine($"📁 Partial class output directory: {outputDirectory}");
             }
 
-            // 排除的实体类型（Identity 相关等特殊实体）
+            // Excluded entity types (Identity-related and other special entities)
             var excludedTypes = new HashSet<string>
             {
                 "ApplicationUser",
                 "ApplicationRole"
             };
 
-            // 查找所有继承 AggregateRoot 的实体类
+            // Find all entity classes inheriting AggregateRoot
             var entityTypes = assemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type =>
@@ -94,24 +94,24 @@ namespace NextAdmin.Application.Extensions
                     !type.IsAbstract &&
                     !type.IsGenericTypeDefinition &&
                     typeof(AggregateRoot).IsAssignableFrom(type) &&
-                    !excludedTypes.Contains(type.Name)) // 排除特殊实体
+                    !excludedTypes.Contains(type.Name)) // Exclude special entities
                 .ToList();
 
-            Console.WriteLine($"📋 发现 {entityTypes.Count} 个实体类（已排除 Identity 相关实体）");
+            Console.WriteLine($"📋 Found {entityTypes.Count} entity classes (Identity-related entities excluded)");
 
             foreach (var entityType in entityTypes)
             {
                 RegisterAppServiceForEntity(services, entityType, assemblies, generatePartialClasses, outputDirectory);
             }
 
-            Console.WriteLine("✅ 应用服务自动注册完成");
+            Console.WriteLine("✅ Application service auto-registration completed");
             Console.WriteLine();
 
             return services;
         }
 
         /// <summary>
-        /// 为单个实体注册应用服务
+        /// Register application service for a single entity
         /// </summary>
         private static void RegisterAppServiceForEntity(
             IServiceCollection services,
@@ -122,15 +122,15 @@ namespace NextAdmin.Application.Extensions
         {
             var entityName = entityType.Name;
 
-            // 查找对应的 DTO 类型
+            // Find corresponding DTO types
             var dtoTypes = FindDtoTypes(entityName, assemblies);
             if (dtoTypes == null)
             {
-                Console.WriteLine($"⚠️  {entityName}: 未找到完整的 DTO 类型，跳过");
+                Console.WriteLine($"⚠️  {entityName}: Complete DTO types not found, skipping");
                 return;
             }
 
-            // 查找自定义应用服务接口和实现
+            // Find custom application service interface and implementation
             var serviceInterfaceName = $"I{entityName}Service";
             var serviceImplementationName = $"{entityName}Service";
 
@@ -147,17 +147,17 @@ namespace NextAdmin.Application.Extensions
                     !type.IsAbstract &&
                     type.Name == serviceImplementationName);
 
-            // 情况 1：接口和实现都存在（生成分部类）
+            // Case 1: Both interface and implementation exist (generate partial class)
             if (serviceInterface != null && serviceImplementation != null)
             {
                 if (serviceInterface.IsAssignableFrom(serviceImplementation))
                 {
                     services.AddScoped(serviceInterface, serviceImplementation);
                     
-                    // 生成分部类文件
+                    // Generate partial class file
                     if (generatePartialClasses)
                     {
-                        // 查找自定义仓储接口
+                        // Find custom repository interface
                         var repositoryInterfaceName = $"I{entityName}Repository";
                         var customRepositoryInterface = assemblies
                             .SelectMany(assembly => assembly.GetTypes())
@@ -170,35 +170,35 @@ namespace NextAdmin.Application.Extensions
                             dtoTypes, 
                             outputDirectory,
                             customRepositoryInterface);
-                        Console.WriteLine($"✅ {entityName}: 已注册自定义服务并生成分部类 {serviceInterfaceName} -> {serviceImplementationName}");
+                        Console.WriteLine($"✅ {entityName}: Custom service registered and partial class generated {serviceInterfaceName} -> {serviceImplementationName}");
                     }
                     else
                     {
-                        Console.WriteLine($"✅ {entityName}: 已注册自定义服务 {serviceInterfaceName} -> {serviceImplementationName}");
+                        Console.WriteLine($"✅ {entityName}: Custom service registered {serviceInterfaceName} -> {serviceImplementationName}");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"⚠️  {entityName}: {serviceImplementationName} 未实现 {serviceInterfaceName}");
+                    Console.WriteLine($"⚠️  {entityName}: {serviceImplementationName} does not implement {serviceInterfaceName}");
                 }
                 return;
             }
 
-            // 情况 2：只有接口，没有实现（生成默认实现）
+            // Case 2: Only interface exists, no implementation (generate default implementation) exists, no implementation (generate default implementation)
             if (serviceInterface != null && serviceImplementation == null)
             {
                 RegisterGenericAppService(services, entityType, dtoTypes, serviceInterface);
-                Console.WriteLine($"🔧 {entityName}: 使用泛型服务实现 {serviceInterfaceName}");
+                Console.WriteLine($"🔧 {entityName}: Using generic service implementation {serviceInterfaceName}");
                 return;
             }
 
-            // 情况 3：没有自定义接口和实现（使用默认泛型服务）
+            // Case 3: No custom interface or implementation (use default generic service)
             RegisterGenericAppService(services, entityType, dtoTypes, null);
-            Console.WriteLine($"📦 {entityName}: 注册泛型服务 IAppService<{entityName}, ...>");
+            Console.WriteLine($"📦 {entityName}: Registered generic service IAppService<{entityName}, ...>");
         }
 
         /// <summary>
-        /// 查找实体对应的 DTO 类型
+        /// Find DTO types corresponding to the entity
         /// </summary>
         private static DtoTypes? FindDtoTypes(string entityName, Assembly[] assemblies)
         {
@@ -216,25 +216,25 @@ namespace NextAdmin.Application.Extensions
             var queryDto = allTypes.FirstOrDefault(t => t.Name == queryDtoName && t.IsClass);
             var basesDto = allTypes.FirstOrDefault(t => t.Name == basesDtoName && typeof(BasesDto).IsAssignableFrom(t));
 
-            // 至少需要 BaseDto 和 CreateDto
+            // At least BaseDto and CreateDto are required
             if (baseDto == null || createDto == null)
             {
                 return null;
             }
 
-            // 使用默认类型填充缺失的 DTO
+            // Use default types to fill in missing DTOs
             return new DtoTypes
             {
                 BaseDto = baseDto,
                 CreateDto = createDto,
-                UpdateDto = updateDto ?? createDto, // 如果没有 UpdateDto，使用 CreateDto
+                UpdateDto = updateDto ?? createDto, // If no UpdateDto, use CreateDto
                 QueryDto = queryDto ?? typeof(QueryDto<>).MakeGenericType(baseDto.BaseType?.GetGenericArguments()[0] ?? typeof(object)),
-                BasesDto = basesDto ?? baseDto // 如果没有 BasesDto，使用 BaseDto
+                BasesDto = basesDto ?? baseDto // If no BasesDto, use BaseDto
             };
         }
 
         /// <summary>
-        /// 注册泛型应用服务
+        /// Register generic application service
         /// </summary>
         private static void RegisterGenericAppService(
             IServiceCollection services,
@@ -242,7 +242,7 @@ namespace NextAdmin.Application.Extensions
             DtoTypes dtoTypes,
             Type? customInterface)
         {
-            // 构建泛型服务类型
+            // Build generic service type
             var serviceType = typeof(AppService<,,,,,>).MakeGenericType(
                 entityType,
                 dtoTypes.BaseDto,
@@ -251,7 +251,7 @@ namespace NextAdmin.Application.Extensions
                 dtoTypes.QueryDto,
                 dtoTypes.BasesDto);
 
-            // 构建接口类型
+            // Build interface type
             var interfaceType = customInterface ?? typeof(IAppService<,,,,,>).MakeGenericType(
                 entityType,
                 dtoTypes.BaseDto,
@@ -260,7 +260,7 @@ namespace NextAdmin.Application.Extensions
                 dtoTypes.QueryDto,
                 dtoTypes.BasesDto);
 
-            // 注册服务
+            // Register service
             services.AddScoped(interfaceType, sp =>
             {
                 var repository = sp.GetRequiredService(
@@ -281,7 +281,7 @@ namespace NextAdmin.Application.Extensions
         }
 
         /// <summary>
-        /// 生成分部类服务文件
+        /// Generate partial service class file
         /// </summary>
         private static void GeneratePartialServiceClass(
             Type entityType,
@@ -294,16 +294,16 @@ namespace NextAdmin.Application.Extensions
             var fileName = $"{serviceClassName}.Generated.cs";
             var filePath = Path.Combine(outputDirectory, fileName);
 
-            // 获取自定义仓储的命名空间和名称
+            // Get custom repository namespace and name
             string? customRepositoryNamespace = customRepositoryInterface?.Namespace;
             string? customRepositoryName = customRepositoryInterface?.Name;
             bool hasCustomRepository = customRepositoryInterface != null;
 
-            // 构建分部类代码
+            // Build partial class code
             var sb = new StringBuilder();
             sb.AppendLine("// <auto-generated />");
-            sb.AppendLine("// 此文件由 AppServiceAutoRegistration 自动生成");
-            sb.AppendLine($"// 生成时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine("// This file is auto-generated by AppServiceAutoRegistration");
+            sb.AppendLine($"// Generated at: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             sb.AppendLine();
             sb.AppendLine("using System;");
             sb.AppendLine("using System.Collections.Generic;");
@@ -316,7 +316,7 @@ namespace NextAdmin.Application.Extensions
             sb.AppendLine("using Microsoft.AspNetCore.Http;");
             sb.AppendLine("using MongoDB.Bson;");
             
-            // 如果有自定义仓储，添加其命名空间
+            // If there's a custom repository, add its namespace
             if (hasCustomRepository && !string.IsNullOrEmpty(customRepositoryNamespace))
             {
                 sb.AppendLine($"using {customRepositoryNamespace};");
@@ -326,35 +326,35 @@ namespace NextAdmin.Application.Extensions
             sb.AppendLine("namespace NextAdmin.Application.Services");
             sb.AppendLine("{");
             sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// {entityName} 服务 - 自动生成的分部类");
-            sb.AppendLine($"    /// 包含基础 CRUD 操作");
+            sb.AppendLine($"    /// {entityName} Service - Auto-generated partial class");
+            sb.AppendLine($"    /// Contains basic CRUD operations");
             if (hasCustomRepository)
             {
-                sb.AppendLine($"    /// 使用自定义仓储: {customRepositoryName}");
+                sb.AppendLine($"    /// Uses custom repository: {customRepositoryName}");
             }
             sb.AppendLine($"    /// </summary>");
             sb.AppendLine($"    public partial class {serviceClassName}");
             sb.AppendLine("    {");
             
-            // 添加自定义仓储字段引用
+            // Add custom repository field reference
             if (hasCustomRepository)
             {
-                sb.AppendLine($"        // 自定义仓储引用（通过构造函数注入）");
+                sb.AppendLine($"        // Custom repository reference (injected via constructor)");
                 sb.AppendLine($"        // private readonly {customRepositoryName} _customRepository;");
-                sb.AppendLine($"        // 可以通过以下方式获取自定义仓储:");
+                sb.AppendLine($"        // You can get custom repository via:");
                 sb.AppendLine($"        // var customRepo = _baseRepository as {customRepositoryName};");
-                sb.AppendLine($"        // 或在构造函数中注入: {customRepositoryName} customRepository");
+                sb.AppendLine($"        // Or inject in constructor: {customRepositoryName} customRepository");
                 sb.AppendLine();
             }
             
-            sb.AppendLine("        // 此分部类由系统自动生成，包含基础 CRUD 功能");
-            sb.AppendLine("        // 可以在另一个分部类文件中添加自定义业务逻辑");
+            sb.AppendLine("        // This partial class is auto-generated by the system and contains basic CRUD functionality");
+            sb.AppendLine("        // You can add custom business logic in another partial class file");
             sb.AppendLine();
-            sb.AppendLine("        #region 自动生成的基础方法");
+            sb.AppendLine("        #region Auto-generated basic methods");
             sb.AppendLine();
             
-            // 生成基础 CRUD 方法的提示注释
-            sb.AppendLine("        // 基础 CRUD 方法已由 AppService 基类提供：");
+            // Generate basic CRUD method hint comments
+            sb.AppendLine("        // Basic CRUD methods are provided by the AppService base class:");
             sb.AppendLine("        // - Task<TBaseDto?> AddAsync(TCreateDto dto)");
             sb.AppendLine("        // - Task<TBaseDto?> UpdateAsync(TUpdateDto dto)");
             sb.AppendLine("        // - Task<bool> DeleteAsync(string id)");
@@ -363,9 +363,9 @@ namespace NextAdmin.Application.Extensions
             sb.AppendLine("        // - Task<QueryPageResultDto<TBasesDto>> GetListPageAsync(TQueryDto queryDto)");
             sb.AppendLine();
             
-            // 添加一些辅助方法示例
+            // Add some helper method examples
             sb.AppendLine("        /// <summary>");
-            sb.AppendLine($"        /// 检查 {entityName} 是否存在");
+            sb.AppendLine($"        /// Check if {entityName} exists");
             sb.AppendLine("        /// </summary>");
             sb.AppendLine("        public async Task<bool> ExistsAsync(string id)");
             sb.AppendLine("        {");
@@ -376,7 +376,7 @@ namespace NextAdmin.Application.Extensions
             sb.AppendLine();
             
             sb.AppendLine("        /// <summary>");
-            sb.AppendLine($"        /// 批量获取 {entityName}");
+            sb.AppendLine($"        /// Batch get {entityName}");
             sb.AppendLine("        /// </summary>");
             sb.AppendLine("        public async Task<List<TBasesDto>> GetByIdsAsync(IEnumerable<string> ids)");
             sb.AppendLine("        {");
@@ -387,7 +387,7 @@ namespace NextAdmin.Application.Extensions
             sb.AppendLine();
             
             sb.AppendLine("        /// <summary>");
-            sb.AppendLine($"        /// 获取已启用的 {entityName} 列表");
+            sb.AppendLine($"        /// Get enabled {entityName} list");
             sb.AppendLine("        /// </summary>");
             sb.AppendLine("        public async Task<List<TBasesDto>> GetEnabledAsync()");
             sb.AppendLine("        {");
@@ -396,7 +396,7 @@ namespace NextAdmin.Application.Extensions
             sb.AppendLine();
             
             sb.AppendLine("        /// <summary>");
-            sb.AppendLine($"        /// 批量启用/禁用 {entityName}");
+            sb.AppendLine($"        /// Batch enable/disable {entityName}");
             sb.AppendLine("        /// </summary>");
             sb.AppendLine("        public async Task<bool> SetEnabledAsync(IEnumerable<string> ids, bool enabled)");
             sb.AppendLine("        {");
@@ -414,11 +414,11 @@ namespace NextAdmin.Application.Extensions
             sb.AppendLine("        }");
             sb.AppendLine();
             
-            // 如果有自定义仓储，添加获取自定义仓储的辅助方法
+            // If there's a custom repository, add helper methods to get the custom repository
             if (hasCustomRepository)
             {
                 sb.AppendLine("        /// <summary>");
-                sb.AppendLine($"        /// 获取自定义仓储 {customRepositoryName}");
+                sb.AppendLine($"        /// Get custom repository {customRepositoryName}");
                 sb.AppendLine("        /// </summary>");
                 sb.AppendLine($"        protected {customRepositoryName}? GetCustomRepository()");
                 sb.AppendLine("        {");
@@ -426,12 +426,12 @@ namespace NextAdmin.Application.Extensions
                 sb.AppendLine("        }");
                 sb.AppendLine();
                 sb.AppendLine("        /// <summary>");
-                sb.AppendLine($"        /// 获取自定义仓储 {customRepositoryName}（强制转换，如果失败会抛出异常）");
+                sb.AppendLine($"        /// Get custom repository {customRepositoryName} (forced cast, will throw exception if fails)");
                 sb.AppendLine("        /// </summary>");
                 sb.AppendLine($"        protected {customRepositoryName} GetCustomRepositoryOrThrow()");
                 sb.AppendLine("        {");
                 sb.AppendLine($"            return (_baseRepository as {customRepositoryName}) ?? ");
-                sb.AppendLine($"                throw new InvalidOperationException(\"无法将 _baseRepository 转换为 {customRepositoryName}\");");
+                sb.AppendLine($"                throw new InvalidOperationException(\"Cannot convert _baseRepository to {customRepositoryName}\");");
                 sb.AppendLine("        }");
                 sb.AppendLine();
             }
@@ -440,25 +440,25 @@ namespace NextAdmin.Application.Extensions
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
-            // 写入文件
+            // Write to file
             try
             {
                 File.WriteAllText(filePath, sb.ToString());
-                Console.WriteLine($"   📄 已生成分部类: {fileName}");
+                Console.WriteLine($"   📄 Generated partial class: {fileName}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"   ⚠️  生成分部类失败: {ex.Message}");
+                Console.WriteLine($"   ⚠️  Failed to generate partial class: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// 打印已注册的应用服务列表（用于调试）
+        /// Print registered application service list (for debugging)
         /// </summary>
         public static void PrintRegisteredAppServices(this IServiceCollection services)
         {
             Console.WriteLine();
-            Console.WriteLine("=== 已注册的应用服务列表 ===");
+            Console.WriteLine("=== Registered Application Services List ===");
 
             var appServices = services
                 .Where(sd => sd.ServiceType.IsGenericType &&
@@ -476,12 +476,12 @@ namespace NextAdmin.Application.Extensions
                 Console.WriteLine($"  {serviceName} -> {implementationName}");
             }
 
-            Console.WriteLine($"📊 共注册 {appServices.Count} 个应用服务");
+            Console.WriteLine($"📊Total {appServices.Count} application services registered");
             Console.WriteLine();
         }
 
         /// <summary>
-        /// DTO 类型集合
+        /// DTO types collection
         /// </summary>
         private class DtoTypes
         {

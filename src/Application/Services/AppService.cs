@@ -23,7 +23,7 @@ using System.Text.Json.Serialization;
 namespace NextAdmin.Application.Services
 {
     /// <summary>
-    /// 通用应用服务基类，封装MongoRepository的常用操作，支持缓存
+    /// Generic application service base class that encapsulates common MongoRepository operations with caching support
     /// </summary>
     public class AppService<TEntity, TBaseDto, TCreateDto, TUpdateDto, TQueryDto, TBasesDto>
         : IAppService<TEntity, TBaseDto, TCreateDto, TUpdateDto, TQueryDto, TBasesDto>
@@ -82,14 +82,14 @@ namespace NextAdmin.Application.Services
             if (_isCommanyId)
                 return ObjectId.Empty;
 
-            // 超级管理员：允许指定TenantId，否则返回Empty
+            // Super admin: Allow specifying TenantId, otherwise return Empty
             if (
                 !string.IsNullOrEmpty(inputTenantId)
                 && ObjectId.TryParse(inputTenantId, out var cid)
             )
                 return cid;
 
-            // 普通用户：始终用自己
+            // Regular user: Always use their own
             ObjectId.TryParse(
                 _httpContextAccessor.HttpContext?.User?.FindFirst("TenantId")?.Value,
                 out ObjectId TenantId
@@ -106,9 +106,9 @@ namespace NextAdmin.Application.Services
             return _httpContextAccessor.HttpContext?.User?.FindFirst("TenantName")?.Value ?? string.Empty;
         }
 
-        // 2. 添加
+        // 2. Add
         /// <summary>
-        /// 添加实体，支持缓存
+        /// Add entity with caching support
         /// </summary>
         public virtual async Task<TBaseDto> AddAsync(TEntity entity)
         {
@@ -155,7 +155,7 @@ namespace NextAdmin.Application.Services
                 entity = await repo.AddAsync(entity);
                 var dto = _mapper.Map<TBaseDto>(entity);
 
-                // 添加后缓存单条 DTO
+                // Cache single DTO after adding
                 if (_isCache)
                 {
                     var cacheKey = GenerateCacheKey(dto.Id);
@@ -172,7 +172,7 @@ namespace NextAdmin.Application.Services
         }
 
         /// <summary>
-        /// 批量添加实体
+        /// Add multiple entities
         /// </summary>
         public virtual async Task<int> AddManyAsync(
             List<TCreateDto> createDtos)
@@ -194,7 +194,7 @@ namespace NextAdmin.Application.Services
                });
                 await repo.AddManyAsync(entities);
                 
-                // 批量添加后清除列表缓存（不单独缓存，避免内存占用）
+                // Clear list cache after batch add (don't cache individually to avoid memory usage)
                 if (_isCache)
                 {
                     await DelCache($"{key}:list:");
@@ -227,7 +227,7 @@ namespace NextAdmin.Application.Services
                 });
                 await repo.AddManyAsync(entities);
 
-                // 批量添加后清除列表缓存（不单独缓存，避免内存占用）
+                // Clear list cache after batch add (don't cache individually to avoid memory usage)
                 if (_isCache)
                 {
                     await DelCache($"{key}:list:");
@@ -245,9 +245,9 @@ namespace NextAdmin.Application.Services
         }
 
 
-        // 3. 更新
+        // 3. Update
         /// <summary>
-        /// 更新实体，支持缓存
+        /// Update entity with caching support
         /// </summary>
         public virtual async Task<ApiResponse> UpdateAsync(
             TUpdateDto updateDto)
@@ -263,26 +263,26 @@ namespace NextAdmin.Application.Services
 
                 if (result && _isCache)
                 {
-                    // 更新单条 DTO 缓存
+                    // Update single DTO cache
                     var cacheKey = GenerateCacheKey(updateDto.Id);
                     var dto = _mapper.Map<TBaseDto>(entity);
                     if (dto is not null)
                         await repo.SetCacheObjectAsync(cacheKey, dto);
                     
-                    // 清除列表相关缓存（因为可能影响列表数据）
+                    // Clear list-related cache (because it may affect list data)
                     await DelCache($"{key}:list:");
                     await DelCache($"{key}:page:");
                     await DelCache($"{key}:query:");
                 }
 
                 return result 
-                    ? ApiResponse.SuccessResponse("更新成功") 
-                    : ApiResponse.ErrorResponse("500", "更新失败");
+                    ? ApiResponse.SuccessResponse("Update successful") 
+                    : ApiResponse.ErrorResponse("500", "Update failed");
             }
             catch (Exception ex)
             {
                 LogHelper.Error(ex, ex.Message);
-                return ApiResponse.ErrorResponse("500", $"更新失败: {ex.Message}");
+                return ApiResponse.ErrorResponse("500", $"Update failed: {ex.Message}");
             }
         }
         public async Task<bool> UpdateAsync(TEntity entity)
@@ -297,13 +297,13 @@ namespace NextAdmin.Application.Services
 
                 if (result && _isCache)
                 {
-                    // 更新单条 DTO 缓存
+                    // Update single DTO cache
                     var cacheKey = GenerateCacheKey(entity.Id.ToString());
                     var dto = _mapper.Map<TBaseDto>(entity);
                     if (dto is not null)
                         await repo.SetCacheObjectAsync(cacheKey, dto);
 
-                    // 清除列表相关缓存（因为可能影响列表数据）
+                    // Clear list-related cache (because it may affect list data)
                     await DelCache($"{key}:list:");
                     await DelCache($"{key}:page:");
                     await DelCache($"{key}:query:");
@@ -342,16 +342,16 @@ namespace NextAdmin.Application.Services
             }
         }
 
-        // 1. 获取
+        // 1. Get
         /// <summary>
-        /// 根据Id获取实体，支持缓存
+        /// Get entity by Id with caching support
         /// </summary>
         public virtual async Task<TBaseDto> GetAsync(string id)
         {
             if (!ObjectId.TryParse(id, out ObjectId objectId))
                 throw new ArgumentException("Invalid ObjectId format", nameof(id));
 
-            // 策略：单条查询缓存 DTO（高频访问）
+            // Strategy: Cache DTO for single queries (high frequency access)
             if (_isCache)
             {
                 var cacheKey = GenerateCacheKey(id);
@@ -370,18 +370,18 @@ namespace NextAdmin.Application.Services
                 return dto ?? new TBaseDto();
             }
 
-            // 未启用缓存，直接查询数据库
+            // Caching not enabled, query database directly
             var entity = await repo.GetByIdAsync(objectId);
             return entity is null ? default! : _mapper.Map<TBaseDto>(entity);
         }
 
-        // 1. 获取
+        // 1. Get
         /// <summary>
-        /// 根据Id获取实体，支持缓存
+        /// Get entity by Id with caching support
         /// </summary>
         public virtual async Task<TEntity> GetAsync(ObjectId id)
         {
-            // 策略：实体查询缓存 Entity
+            // Strategy: Cache Entity for entity queries
             if (_isCache)
             {
                 var cacheKey = GenerateCacheKey($"entity:{id}");
@@ -397,27 +397,27 @@ namespace NextAdmin.Application.Services
                 return entityFromDb;
             }
 
-            // 未启用缓存，直接查询数据库
+            // Caching not enabled, query database directly
             var entity = await repo.GetByIdAsync(id);
             return entity;
         }
 
         /// <summary>
-        /// 获取单个实体Dto（条件）
+        /// Get single entity DTO (with conditions)
         /// </summary>
         public virtual async Task<TBaseDto> GetOneAsync(TQueryDto TQueryDto)
         {
-            // 策略：单个查询缓存 DTO（高频访问）
+            // Strategy: Cache DTO for single queries (high frequency access)
             if (_isCache)
             {
                 var cacheKey = GenerateQueryCacheKey(TQueryDto, "dto");
                 
-                // 尝试从缓存获取 DTO
+                // Try to get DTO from cache
                 var cachedDto = await repo.GetCacheObjectAsync<TBaseDto>(cacheKey);
                 if (cachedDto is not null)
                     return cachedDto;
                 
-                // 缓存未命中，查询数据库
+                // Cache miss, query database
                 var entity = await repo.GetOneAsync(TQueryDto.ToExpression(), GetTenantId(TQueryDto.TenantId));
                 if (entity is null)
                     return default!;
@@ -427,27 +427,27 @@ namespace NextAdmin.Application.Services
                 return dto;
             }
 
-            // 未启用缓存，直接查询数据库
+            // Caching not enabled, query database directly
             var one = await repo.GetOneAsync(TQueryDto.ToExpression(), GetTenantId(TQueryDto.TenantId));
             return one is null ? default! : _mapper.Map<TBaseDto>(one);
         }
 
         /// <summary>
-        /// 获取单个实体（条件）
+        /// Get single entity (with conditions)
         /// </summary>
         public virtual async Task<TEntity> GetOneEntityAsync(TQueryDto TQueryDto)
         {
-            // 策略：实体查询缓存 Entity
+            // Strategy: Cache Entity for entity queries
             if (_isCache)
             {
                 var cacheKey = GenerateQueryCacheKey(TQueryDto, "entity");
                 
-                // 尝试从缓存获取 Entity
+                // Try to get Entity from cache
                 var cachedEntity = await repo.GetCacheObjectAsync<TEntity>(cacheKey);
                 if (cachedEntity is not null)
                     return cachedEntity;
                 
-                // 缓存未命中，查询数据库
+                // Cache miss, query database
                 var entity = await repo.GetOneAsync(TQueryDto.ToExpression(), GetTenantId(TQueryDto.TenantId));
                 if (entity is not null)
                 {
@@ -456,27 +456,27 @@ namespace NextAdmin.Application.Services
                 return entity!;
             }
 
-            // 未启用缓存，直接查询数据库
+            // Caching not enabled, query database directly
             return (await repo.GetOneAsync(TQueryDto.ToExpression(), GetTenantId(TQueryDto.TenantId)))!;
         }
 
         /// <summary>
-        /// 条件查询实体
+        /// Query entities with conditions
         /// </summary>
         public virtual async Task<List<TBasesDto>> GetsAsync(TQueryDto TQueryDto, string sortField = "CreateTime", bool isAsc = false)
         {
-            // 策略：列表查询缓存 DTO（避免重复映射）
+            // Strategy: Cache DTO for list queries (avoid repeated mapping)
             if (_isCache)
             {
                 var cacheKey = GenerateQueryCacheKey(TQueryDto, $"list:dto:{sortField}:{isAsc}");
                 
-                // 尝试从缓存获取 DTO
+                // Try to get DTO from cache
                 var cachedDtos = await repo.GetCacheObjectAsync<List<TBasesDto>>(cacheKey);
                 if (cachedDtos?.Any() == true)
                     return cachedDtos;
 
-                // 缓存未命中，查询数据库
-                // 尝试直接在数据库层投影为 TBasesDto（避免拉取完整实体）
+                // Cache miss, query database
+                // Try to project directly to TBasesDto at database layer (avoid fetching full entity)
                 ProjectionDefinition<TEntity, TBasesDto>? projection = null;
                 try
                 {
@@ -504,18 +504,18 @@ namespace NextAdmin.Application.Services
                     if (entities?.Any() != true)
                         return new List<TBasesDto>();
 
-                    // 映射为 DTO
+                    // Map to DTO
                     dtos = _mapper.Map<List<TBasesDto>>(entities);
                 }
 
-                // 缓存 DTO（而非 Entity）
+                // Cache DTO (instead of Entity)
                 if (dtos?.Any() == true)
                     await repo.SetCacheObjectAsync(cacheKey, dtos);
 
                 return dtos;
             }
 
-            // 未启用缓存，直接查询数据库
+            // Caching not enabled, query database directly
             var result = await repo.GetAsync(TQueryDto.ToExpression(), GetTenantId(TQueryDto.TenantId), sortField, isAsc);
             return result?.Any() == true ? _mapper.Map<List<TBasesDto>>(result) : new List<TBasesDto>();
         }
@@ -527,7 +527,7 @@ namespace NextAdmin.Application.Services
         }
 
         /// <summary>
-        /// 获取所有实体
+        /// Get all entities
         /// </summary>
         public virtual async Task<List<TBasesDto>> GetAllAsync()
         {
@@ -541,7 +541,7 @@ namespace NextAdmin.Application.Services
                 var entities = await repo.GetAllAsync(CurrentTenantId);
                 var dtos = entities?.Any() == true ? _mapper.Map<List<TBasesDto>>(entities) : new List<TBasesDto>();
                 
-                // 缓存 DTO 列表
+                // Cache DTO list
                 await repo.SetCacheObjectAsync(cacheKey, dtos);
                 return dtos;
             }
@@ -553,7 +553,7 @@ namespace NextAdmin.Application.Services
         } 
         
         /// <summary>
-        /// 获取所有实体
+        /// Get all entities
         /// </summary>
         public virtual async Task<List<TEntity>> GetAllEntityAsync()
         {
@@ -561,7 +561,7 @@ namespace NextAdmin.Application.Services
         }
 
         /// <summary>
-        /// 获取所有选项数据（无参数）
+        /// Get all option data (no parameters)
         /// </summary>
         public virtual async Task<List<OptionDto>> GetOptionsAsync()
         {
@@ -572,7 +572,7 @@ namespace NextAdmin.Application.Services
                 if (cachedOptions is not null)
                     return cachedOptions;
 
-                // 使用投影直接获取 Id 和 Name（性能优化）
+                // Use projection to get Id and Name directly (performance optimization)
                 var projection = CreateOptionProjection();
                 List<OptionDto> options;
 
@@ -588,7 +588,7 @@ namespace NextAdmin.Application.Services
                 }
                 else
                 {
-                    // 降级：使用完整实体映射
+                    // Fallback: Use full entity mapping
                     var entities = await repo.GetAllAsync(CurrentTenantId);
                     if (entities?.Any() != true)
                         return new List<OptionDto>();
@@ -596,13 +596,13 @@ namespace NextAdmin.Application.Services
                     options = entities.Select(x => new OptionDto { value = x.Id.ToString(), label = x.Name }).ToList();
                 }
                 
-                // 缓存选项数据（常用于下拉列表）
+                // Cache option data (commonly used for dropdown lists)
                 await repo.SetCacheObjectAsync(cacheKey, options);
                 return options ?? new List<OptionDto>();
             }
             else
             {
-                // 使用投影直接获取 Id 和 Name（性能优化）
+                // Use projection to get Id and Name directly (performance optimization)
                 var projection = CreateOptionProjection();
                 if (projection != null)
                 {
@@ -615,7 +615,7 @@ namespace NextAdmin.Application.Services
                     return projected ?? new List<OptionDto>();
                 }
 
-                // 降级：使用完整实体映射
+                // Fallback: Use full entity mapping
                 var entities = await repo.GetAllAsync(CurrentTenantId);
                 if (entities?.Any() != true)
                     return new List<OptionDto>();
@@ -626,25 +626,25 @@ namespace NextAdmin.Application.Services
         }
 
         /// <summary>
-        /// 获取选项数据（带查询条件和排序）
+        /// Get option data (with query conditions and sorting)
         /// </summary>
-        /// <param name="queryDto">查询条件</param>
-        /// <param name="sortField">排序字段</param>
-        /// <param name="isAsc">是否升序</param>
-        /// <returns>选项数据列表</returns>
+        /// <param name="queryDto">Query conditions</param>
+        /// <param name="sortField">Sort field</param>
+        /// <param name="isAsc">Ascending order</param>
+        /// <returns>Option data list</returns>
         public virtual async Task<List<OptionDto>> GetOptionsAsync(TQueryDto queryDto, string sortField = "CreateTime", bool isAsc = false)
         {
-            // 策略：选项查询缓存 OptionDto（常用于下拉列表，高频访问）
+            // Strategy: Cache OptionDto for option queries (commonly used for dropdown lists, high frequency access)
             if (_isCache)
             {
                 var cacheKey = GenerateQueryCacheKey(queryDto, $"options:dto:{sortField}:{isAsc}");
                 
-                // 尝试从缓存获取选项数据
+                // Try to get option data from cache
                 var cachedOptions = await repo.GetCacheObjectAsync<List<OptionDto>>(cacheKey);
                 if (cachedOptions is not null)
                     return cachedOptions;
 
-                // 缓存未命中，使用投影查询数据库
+                // Cache miss, use projection to query database
                 var projection = CreateOptionProjection();
                 List<OptionDto> options;
 
@@ -660,20 +660,20 @@ namespace NextAdmin.Application.Services
                 }
                 else
                 {
-                    // 降级：使用完整实体映射
+                    // Fallback: Use full entity mapping
                     List<TEntity> entities = await repo.GetAsync(queryDto.ToExpression(), GetTenantId(queryDto.TenantId), sortField, isAsc);
                     options = entities?.Any() == true 
                         ? entities.Select(x => new OptionDto { value = x.Id.ToString(), label = x.Name }).ToList()
                         : new List<OptionDto>();
                 }
 
-                // 缓存选项数据
+                // Cache option data
                 await repo.SetCacheObjectAsync(cacheKey, options);
                 
                 return options;
             }
 
-            // 未启用缓存，使用投影直接查询数据库
+            // Caching not enabled, use projection to query database directly
             var projectionNonCached = CreateOptionProjection();
             if (projectionNonCached != null)
             {
@@ -686,7 +686,7 @@ namespace NextAdmin.Application.Services
                 return projected ?? new List<OptionDto>();
             }
 
-            // 降级：使用完整实体映射
+            // Fallback: Use full entity mapping
             List<TEntity> result = await repo.GetAsync(queryDto.ToExpression(), GetTenantId(queryDto.TenantId), sortField, isAsc);
             return result?.Any() == true 
                 ? result.Select(x => new OptionDto { value = x.Id.ToString(), label = x.Name }).ToList()
@@ -695,9 +695,9 @@ namespace NextAdmin.Application.Services
 
 
         /// <summary>
-        /// 分页查询 - 自动投影优化（最简单的调用方式）
-        /// 自动基于 TBasesDto 属性创建投影，无需手动定义
-        /// 推荐用于列表页，性能优于 AutoMapper 方式
+        /// Pagination query - automatic projection optimization (simplest calling method)
+        /// Automatically creates projection based on TBasesDto properties without manual definition
+        /// Recommended for list pages, better performance than AutoMapper approach
         /// </summary>
         public virtual async Task<PagedResultDto<TBasesDto>> GetListPageAsync(
             TQueryDto queryDto,
@@ -711,17 +711,17 @@ namespace NextAdmin.Application.Services
                 queryDto,
                 pageNumber,
                 pageSize,
-                null,  // 传 null，自动创建投影
+                null,  // Pass null, automatically create projection
                 sortField,
                 isAsc
             );
         }
 
-        // ===================== AppService<T...> 类内 =====================
+        // ===================== AppService<T...> class =====================
 
         /// <summary>
-        /// 分页查询 - 使用 MongoDB 投影（推荐用于列表页，性能最优）
-        /// 直接在数据库层面排除大字段，返回轻量 DTO
+        /// Pagination query - using MongoDB projection (recommended for list pages, best performance)
+        /// Excludes large fields directly at database layer, returns lightweight DTO
         /// </summary>
         protected virtual async Task<PagedResultDto<TBasesDto>> GetListPageWithProjectionAsync(
             TQueryDto queryDto,
@@ -732,7 +732,7 @@ namespace NextAdmin.Application.Services
             bool isAsc = false
         )
         {
-            // ✅ 未提供投影时，基于 TBasesDto 创建，并确保包含游标所需字段
+            // ✅ When projection not provided, create based on TBasesDto and ensure cursor-required fields are included
             if (projection == null)
             {
                 projection = CreateProjectionFromDto(sortField);
@@ -774,98 +774,98 @@ namespace NextAdmin.Application.Services
         }
 
         /// <summary>
-        /// 基于 TBasesDto 的属性自动创建 MongoDB 投影
-        /// 只包含 DTO 中定义且实体存在的属性；并强制包含 _id 与排序字段
+        /// Automatically create MongoDB projection based on TBasesDto properties
+        /// Only includes properties defined in DTO and existing in entity; forcefully includes _id and sort field
         /// </summary>
         private ProjectionDefinition<TEntity, TBasesDto> CreateProjectionFromDto(string sortField = "CreateTime")
         {
-            // 1) 获取 TBasesDto 的公共可读属性名
+            // 1) Get public readable property names of TBasesDto
             var dtoProperties = typeof(TBasesDto)
                 .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
                 .Where(p => p.CanRead)
                 .Select(p => p.Name)
                 .ToList();
 
-            // 2) 获取 TEntity 的属性名（用于验证交集）
+            // 2) Get property names of TEntity (for validating intersection)
             var entityProperties = typeof(TEntity)
                 .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
                 .Select(p => p.Name)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-            // 3) 只保留实体中存在的字段
+            // 3) Only keep fields that exist in entity
             var validFields = dtoProperties.Where(name => entityProperties.Contains(name)).ToList();
 
             if (validFields.Count == 0)
-                return null!; // 调用方会退回默认行为
+                return null!; // Calling code will fall back to default behavior
 
-            // 4) 构建 BsonDocument 投影
+            // 4) Build BsonDocument projection
             var projectionDoc = new MongoDB.Bson.BsonDocument();
 
             foreach (var field in validFields)
             {
-                // regular C# 属性名（如 CreateTime/UpdateTime/TenantName/Id 等）
+                // Regular C# property name (like CreateTime/UpdateTime/TenantName/Id etc)
                 projectionDoc[field] = 1;
             }
 
-            // ✅ 5) 强制包含 _id（注意：Mongo 的主键字段名是 "_id" 而不是 "Id"）
+            // ✅ 5) Forcefully include _id (Note: Mongo's primary key field name is "_id" not "Id")
             if (!projectionDoc.Contains("_id"))
             {
                 projectionDoc["_id"] = 1;
             }
 
-            // ✅ 6) 强制包含排序字段（如果是 "Id" 则映射为 "_id"）
+            // ✅ 6) Forcefully include sort field (if "Id" then map to "_id")
             var sortFieldBson = string.Equals(sortField, "Id", StringComparison.OrdinalIgnoreCase) ? "_id" : sortField;
             if (!projectionDoc.Contains(sortFieldBson))
             {
                 projectionDoc[sortFieldBson] = 1;
             }
 
-            // 7) 返回投影定义
+            // 7) Return projection definition
             return new BsonDocumentProjectionDefinition<TEntity, TBasesDto>(projectionDoc);
         }
 
         /// <summary>
-        /// 创建 OptionDto 的 MongoDB 投影
-        /// 只包含 Id 和 Name 字段，用于下拉列表等场景
-        /// 将 MongoDB 的 _id 映射为 value，Name 映射为 label
+        /// Create MongoDB projection for OptionDto
+        /// Only includes Id and Name fields, used for dropdown lists and similar scenarios
+        /// Maps MongoDB's _id to value and Name to label
         /// </summary>
         protected virtual ProjectionDefinition<TEntity, OptionDto>? CreateOptionProjection()
         {
             try
             {
-                // 检查实体是否有 Name 属性
+                // Check if entity has Name property
                 var entityProperties = typeof(TEntity)
                     .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
                     .Select(p => p.Name)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
                 if (!entityProperties.Contains("Name"))
-                    return null; // 实体没有 Name 属性，无法创建投影
+                    return null; // Entity doesn't have Name property, cannot create projection
 
-                // 构建投影：_id 作为 value, Name 作为 label
+                // Build projection: _id as value, Name as label
                 var projectionDoc = new MongoDB.Bson.BsonDocument
                 {
-                    { "value", "$_id" },  // 将 _id 投影为 value
-                    { "label", "$Name" }   // 将 Name 投影为 label
+                    { "value", "$_id" },  // Project _id as value
+                    { "label", "$Name" }   // Project Name as label
                 };
 
                 return new BsonDocumentProjectionDefinition<TEntity, OptionDto>(projectionDoc);
             }
             catch
             {
-                return null; // 投影创建失败，调用方会降级到完整实体查询
+                return null; // Projection creation failed, calling code will fall back to full entity query
             }
         }
 
 
-        // 4. 删除
+        // 4. Delete
         /// <summary>
-        /// 根据Id删除实体
+        /// Delete entity by Id
         /// </summary>
         public virtual async Task<ApiResponse> DeleteAsync(string id)
         {
             if (!ObjectId.TryParse(id, out ObjectId objectId))
-                return ApiResponse.ErrorResponse("400", "无效的ID格式");
+                return ApiResponse.ErrorResponse("400", "Invalid ID format");
 
             try
             {
@@ -873,11 +873,11 @@ namespace NextAdmin.Application.Services
                 
                 if (result && _isCache)
                 {
-                    // 删除单条缓存
+                    // Delete single cache
                     var cacheKey = GenerateCacheKey(id);
                     await repo.RemoveCacheByPrefixAsync(cacheKey);
                     
-                    // 清除列表相关缓存
+                    // Clear list-related cache
                     await DelCache($"{key}:list:");
                     await DelCache($"{key}:page:");
                     await DelCache($"{key}:query:");
@@ -886,30 +886,30 @@ namespace NextAdmin.Application.Services
                 }
                 
                 return result 
-                    ? ApiResponse.SuccessResponse("删除成功") 
-                    : ApiResponse.ErrorResponse("500", "删除失败");
+                    ? ApiResponse.SuccessResponse("Deletion successful") 
+                    : ApiResponse.ErrorResponse("500", "Deletion failed");
             }
             catch (Exception err)
             {
-                LogHelper.Error($"删除失败: {err.Message}", err);
-                return ApiResponse.ErrorResponse("500", $"删除失败: {err.Message}");
+                LogHelper.Error($"Deletion failed: {err.Message}", err);
+                return ApiResponse.ErrorResponse("500", $"Deletion failed: {err.Message}");
             }
         }
 
-        // 5. 统计
+        // 5. Statistics
         /// <summary>
-        /// 获取实体数量
+        /// Get entity count
         /// </summary>
         public virtual async Task<long> CountAsync(TQueryDto TQueryDto)
         {
                 return await repo.CountAsync(TQueryDto.ToExpression(), GetTenantId(TQueryDto.TenantId));
         }
 
-        #region 缓存辅助方法
+        #region Cache helper methods
 
 
         /// <summary>
-        /// 生成缓存键
+        /// Generate cache key
         /// </summary>
         protected string GenerateCacheKey(string suffix)
         {
@@ -917,9 +917,9 @@ namespace NextAdmin.Application.Services
         }
 
         /// <summary>
-        /// 删除指定前缀的缓存
+        /// Delete cache by prefix
         /// </summary>
-        /// <param name="prefix">缓存前缀，如果为 null 则删除整个 key 前缀的所有缓存</param>
+        /// <param name="prefix">Cache prefix; if null, deletes all cache with key prefix</param>
         protected async Task DelCache(string? prefix = null)
         {
             if (_isCache && repo.SupportsCaching)
@@ -930,7 +930,7 @@ namespace NextAdmin.Application.Services
         }
 
         /// <summary>
-        /// 生成查询缓存键
+        /// Generate query cache key
         /// </summary>
         protected string GenerateQueryCacheKey(TQueryDto queryDto, string? suffix = null)
         {
@@ -941,7 +941,7 @@ namespace NextAdmin.Application.Services
         }
 
         /// <summary>
-        /// JSON 序列化选项（用于缓存键生成）
+        /// JSON serialization options (for cache key generation)
         /// </summary>
         private static readonly JsonSerializerOptions CacheKeyJsonOptions = new()
         {
@@ -951,7 +951,7 @@ namespace NextAdmin.Application.Services
         };
 
         /// <summary>
-        /// 生成查询DTO的MD5哈希
+        /// Generate MD5 hash of query DTO
         /// </summary>
         private static string GenerateQueryDtoMD5(TQueryDto queryDto)
         {
@@ -963,11 +963,11 @@ namespace NextAdmin.Application.Services
         #endregion
 
 
-        #region 存档代码
+        #region Archived code
 
         ///// <summary>
-        ///// 分页查询 - 使用 Seek 游标分页（支持 MongoDB 投影优化）
-        ///// 默认使用 AutoMapper 映射完整实体，子类可重写使用 MongoDB 投影
+        ///// Pagination query - using Seek cursor pagination (supports MongoDB projection optimization)
+        ///// Uses AutoMapper to map full entity by default, subclasses can override to use MongoDB projection
         ///// </summary>
         //public virtual async Task<PagedResultDto<TBasesDto>> GetListPageAsyncbak(
         //    TQueryDto queryDto,
@@ -977,17 +977,17 @@ namespace NextAdmin.Application.Services
         //    bool isAsc
         //)
         //{
-        //    // 策略：分页查询缓存 PagedResultDto（包含总数和数据列表）
+        //    // Strategy: Cache PagedResultDto for pagination queries (includes total count and data list)
         //    if (_isCache)
         //    {
         //        var cacheKey = GenerateQueryCacheKey(queryDto, $"page:dto:{pageNumber}:{pageSize}:{sortField}:{isAsc}");
 
-        //        // 尝试从缓存获取分页结果
+        //        // Try to get pagination result from cache
         //        var cachedResult = await repo.GetCacheObjectAsync<PagedResultDto<TBasesDto>>(cacheKey);
         //        if (cachedResult is not null)
         //            return cachedResult;
 
-        //        // 缓存未命中，查询数据库（使用 Seek 分页）
+        //        // Cache miss, query database (using Seek pagination)
         //        (List<TEntity> items, long total) queryResult = await repo.GetListPageAsync(
         //                pageNumber,
         //                pageSize,
@@ -1002,13 +1002,13 @@ namespace NextAdmin.Application.Services
 
         //        var pagedResult = new PagedResultDto<TBasesDto>(queryResult.total, dtosResult);
 
-        //        // 缓存分页结果（包含总数和数据）
+        //        // Cache pagination result (includes total count and data)
         //        await repo.SetCacheObjectAsync(cacheKey, pagedResult);
 
         //        return pagedResult;
         //    }
 
-        //    // 未启用缓存，直接查询数据库
+        //    // Caching not enabled, query database directly
         //    (List<TEntity> items, long total) result = await repo.GetListPageAsync(
         //            pageNumber,
         //            pageSize,

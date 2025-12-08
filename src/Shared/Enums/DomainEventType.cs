@@ -1,25 +1,25 @@
     /// <summary>
-    /// 领域事件类型
+    /// Domain event type
     /// </summary>
     public enum DomainEventType
     {
         /// <summary>
-        /// 添加
+        /// Added
         /// </summary>
         Added = 1,
 
         /// <summary>
-        /// 更新
+        /// Updated
         /// </summary>
         Updated = 2,
 
         /// <summary>
-        /// 移除
+        /// Removed
         /// </summary>
         Removed = 3,
 
         /// <summary>
-        /// 自定义事件
+        /// Custom event
         /// </summary>
         Custom = 4
     }

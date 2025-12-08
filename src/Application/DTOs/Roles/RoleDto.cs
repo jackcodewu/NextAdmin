@@ -6,34 +6,34 @@ using System.Collections.Generic;
 namespace NextAdmin.Application.DTOs;
 
 /// <summary>
-/// 角色DTO
+/// Role DTO
 /// </summary>
 public class RoleDto : BaseDto
 {
 
     /// <summary>
-    /// 角色描述
+    /// Role description
     /// </summary>
     public string? Description { get; set; }
 
     /// <summary>
-    /// 用户数量
+    /// User count
     /// </summary>
     public int UserCount { get; set; }
     
 
     /// <summary>
-    /// 创建时间
+    /// Create time
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// 菜单列表
+    /// Menu list
     /// </summary>
     public List<Menu> Menus { get; set; }
 
     /// <summary>
-    /// 权限列表
+    /// Permission list
     /// </summary>
     public List<Permission> Permissions { get; set; }
 } 

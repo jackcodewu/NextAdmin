@@ -9,23 +9,23 @@ using Microsoft.Extensions.DependencyInjection;
 namespace NextAdmin.Infrastructure.Extensions
 {
     /// <summary>
-    /// 仓储自动注册提供器
-    /// 自动扫描并注册所有继承 AggregateRoot 的实体类的仓储
+    /// Repository auto-registration provider
+    /// Automatically scan and register repositories for all entities inheriting AggregateRoot
     /// </summary>
     public static class RepositoryAutoRegistration
     {
         /// <summary>
-        /// 自动注册所有仓储
+        /// Auto-register all repositories
         /// </summary>
-        /// <param name="services">服务集合</param>
-        /// <param name="assemblies">要扫描的程序集列表</param>
+        /// <param name="services">Service collection</param>
+        /// <param name="assemblies">List of assemblies to scan</param>
         public static IServiceCollection AddAutoRepositories(
             this IServiceCollection services, 
             params Assembly[] assemblies)
         {
             if (assemblies == null || assemblies.Length == 0)
             {
-                // 如果没有指定程序集，默认扫描 Core 和 Infrastructure 程序集
+                // If no assemblies specified, default to scanning Core and Infrastructure assemblies
                 assemblies = new[]
                 {
                     Assembly.Load("NextAdmin.Core"),
@@ -33,7 +33,7 @@ namespace NextAdmin.Infrastructure.Extensions
                 };
             }
 
-            // 1. 查找所有继承 AggregateRoot 的实体类
+            // 1. Find all entity classes inheriting AggregateRoot
             var entityTypes = assemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => 
@@ -43,42 +43,42 @@ namespace NextAdmin.Infrastructure.Extensions
                     typeof(AggregateRoot).IsAssignableFrom(type))
                 .ToList();
 
-            Console.WriteLine($"[RepositoryAutoRegistration] 发现 {entityTypes.Count} 个实体类");
+            Console.WriteLine($"[RepositoryAutoRegistration] Found {entityTypes.Count} entity classes");
 
-            // 2. 为每个实体类注册仓储
+            // 2. Register repository for each entity class
             foreach (var entityType in entityTypes)
             {
                 RegisterRepositoryForEntity(services, entityType, assemblies);
             }
 
-            // 3. 注册通用仓储
+            // 3. Register generic repository
             services.AddScoped(typeof(IBaseRepository<>), typeof(Repositories.BaseRepository<>));
             
             return services;
         }
 
         /// <summary>
-        /// 为单个实体类注册仓储
+        /// Register repository for a single entity class
         /// </summary>
         private static void RegisterRepositoryForEntity(
             IServiceCollection services, 
             Type entityType,
             Assembly[] assemblies)
         {
-            // 构建仓储接口名称，例如：IWordRepository, IMenuRepository
+            // Build repository interface name, e.g.: IWordRepository, IMenuRepository
             var repositoryInterfaceName = $"I{entityType.Name}Repository";
             
-            // 构建仓储实现类名称，例如：WordRepository, MenuRepository
+            // Build repository implementation class name, e.g.: WordRepository, MenuRepository
             var repositoryImplementationName = $"{entityType.Name}Repository";
 
-            // 在程序集中查找仓储接口
+            // Find repository interface in assemblies
             var repositoryInterface = assemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .FirstOrDefault(type => 
                     type.IsInterface && 
                     type.Name == repositoryInterfaceName);
 
-            // 在程序集中查找仓储实现类
+            // Find repository implementation class in assemblies
             var repositoryImplementation = assemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .FirstOrDefault(type => 
@@ -86,63 +86,63 @@ namespace NextAdmin.Infrastructure.Extensions
                     !type.IsAbstract &&
                     type.Name == repositoryImplementationName);
 
-            // 如果同时找到接口和实现类，则注册
+            // If both interface and implementation class are found, register them
             if (repositoryInterface != null && repositoryImplementation != null)
             {
-                // 验证实现类是否实现了接口
+                // Verify that implementation class implements the interface
                 if (repositoryInterface.IsAssignableFrom(repositoryImplementation))
                 {
                     services.AddScoped(repositoryInterface, repositoryImplementation);
-                    Console.WriteLine($"[RepositoryAutoRegistration] ✅ 已注册: {repositoryInterface.Name} -> {repositoryImplementation.Name}");
+                    Console.WriteLine($"[RepositoryAutoRegistration] ✅ Registered: {repositoryInterface.Name} -> {repositoryImplementation.Name}");
                 }
                 else
                 {
-                    Console.WriteLine($"[RepositoryAutoRegistration] ⚠️  {repositoryImplementation.Name} 未实现 {repositoryInterface.Name}");
+                    Console.WriteLine($"[RepositoryAutoRegistration] ⚠️  {repositoryImplementation.Name} does not implement {repositoryInterface.Name}");
                 }
             }
             else
             {
-                // 如果没有找到自定义仓储，使用泛型 IBaseRepository<T>
+                // If custom repository not found, use generic IBaseRepository<T>
                 var baseRepositoryInterface = typeof(IBaseRepository<>).MakeGenericType(entityType);
                 var baseRepositoryImplementation = typeof(Repositories.BaseRepository<>).MakeGenericType(entityType);
                 
-                // 检查是否已经注册过
+                // Check if already registered
                 if (!services.Any(sd => sd.ServiceType == baseRepositoryInterface))
                 {
                     services.AddScoped(baseRepositoryInterface, baseRepositoryImplementation);
-                    Console.WriteLine($"[RepositoryAutoRegistration] 📦 使用泛型仓储: IBaseRepository<{entityType.Name}>");
+                    Console.WriteLine($"[RepositoryAutoRegistration] 📦 Use generic repository: IBaseRepository<{entityType.Name}>");
                 }
             }
         }
 
         /// <summary>
-        /// 手动注册单个仓储（用于替换自动注册）
+        /// Manually register a single repository (to replace auto-registration)
         /// </summary>
         public static IServiceCollection AddRepository<TInterface, TImplementation>(
             this IServiceCollection services)
             where TInterface : class
             where TImplementation : class, TInterface
         {
-            // 移除可能存在的自动注册
+            // Remove existing auto-registration
             var existingDescriptor = services.FirstOrDefault(sd => sd.ServiceType == typeof(TInterface));
             if (existingDescriptor != null)
             {
                 services.Remove(existingDescriptor);
-                Console.WriteLine($"[RepositoryAutoRegistration] 🔄 替换自动注册: {typeof(TInterface).Name}");
+                Console.WriteLine($"[RepositoryAutoRegistration] 🔄 Replace auto-registration: {typeof(TInterface).Name}");
             }
 
             services.AddScoped<TInterface, TImplementation>();
-            Console.WriteLine($"[RepositoryAutoRegistration] ✅ 手动注册: {typeof(TInterface).Name} -> {typeof(TImplementation).Name}");
+            Console.WriteLine($"[RepositoryAutoRegistration] ✅ Manually registered: {typeof(TInterface).Name} -> {typeof(TImplementation).Name}");
             
             return services;
         }
 
         /// <summary>
-        /// 获取所有已注册的仓储信息（用于调试）
+        /// Get all registered repository information (for debugging)
         /// </summary>
         public static void PrintRegisteredRepositories(this IServiceCollection services)
         {
-            Console.WriteLine("\n========== 已注册的仓储列表 ==========");
+            Console.WriteLine("\n========== Registered Repository List ==========");
             
             var repositories = services
                 .Where(sd => sd.ServiceType.IsGenericType && 
@@ -157,7 +157,7 @@ namespace NextAdmin.Infrastructure.Extensions
                 Console.WriteLine($"  {serviceType} -> {implementationType}");
             }
             
-            Console.WriteLine($"总计: {repositories.Count} 个仓储");
+            Console.WriteLine($"Total: {repositories.Count} repositories");
             Console.WriteLine("=====================================\n");
         }
     }

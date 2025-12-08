@@ -3,54 +3,54 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace NextAdmin.Core.Domain.Entities
 {
     /// <summary>
-    /// 租户实体
+    /// Tenant entity
     /// </summary>
     public class Tenant : AggregateRoot
     {
         /// <summary>
-        /// 租户编码（唯一标识）
+        /// Tenant code (unique identifier)
         /// </summary>
         [BsonElement("Code")]
         public string Code { get; private set; } = string.Empty;
 
         /// <summary>
-        /// 租户描述
+        /// Tenant description
         /// </summary>
         [BsonElement("Description")]
         public string? Description { get; private set; }
 
         /// <summary>
-        /// 联系人
+        /// Contact person
         /// </summary>
         [BsonElement("ContactPerson")]
         public string? ContactPerson { get; private set; }
 
         /// <summary>
-        /// 联系电话
+        /// Contact phone
         /// </summary>
         [BsonElement("ContactPhone")]
         public string? ContactPhone { get; private set; }
 
         /// <summary>
-        /// 联系邮箱
+        /// Contact email
         /// </summary>
         [BsonElement("ContactEmail")]
         public string? ContactEmail { get; private set; }
 
         /// <summary>
-        /// 过期时间
+        /// Expiration date
         /// </summary>
         [BsonElement("ExpirationDate")]
         public DateTime? ExpirationDate { get; private set; }
 
         /// <summary>
-        /// 最大用户数限制
+        /// Maximum user count limit
         /// </summary>
         [BsonElement("MaxUserCount")]
         public int? MaxUserCount { get; private set; }
 
         /// <summary>
-        /// 自定义配置（JSON格式）
+        /// Custom configuration (JSON format)
         /// </summary>
         [BsonElement("CustomConfig")]
         public string? CustomConfig { get; private set; }
@@ -60,9 +60,9 @@ namespace NextAdmin.Core.Domain.Entities
         public Tenant(string code, string name)
         {
             if (string.IsNullOrWhiteSpace(code))
-                throw new ArgumentException("租户编码不能为空", nameof(code));
+                throw new ArgumentException("Tenant code cannot be empty", nameof(code));
             if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("租户名称不能为空", nameof(name));
+                throw new ArgumentException("Tenant name cannot be empty", nameof(name));
 
             Code = code;
             Name = name;
@@ -70,13 +70,13 @@ namespace NextAdmin.Core.Domain.Entities
         }
 
         /// <summary>
-        /// 更新租户信息
+        /// Update tenant information
         /// </summary>
         public void UpdateInfo(string name, string? description, string? contactPerson, 
             string? contactPhone, string? contactEmail)
         {
             if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("租户名称不能为空", nameof(name));
+                throw new ArgumentException("Tenant name cannot be empty", nameof(name));
 
             Name = name;
             Description = description;
@@ -87,7 +87,7 @@ namespace NextAdmin.Core.Domain.Entities
         }
 
         /// <summary>
-        /// 设置过期时间
+        /// Set expiration date
         /// </summary>
         public void SetExpirationDate(DateTime? expirationDate)
         {
@@ -96,19 +96,19 @@ namespace NextAdmin.Core.Domain.Entities
         }
 
         /// <summary>
-        /// 设置最大用户数
+        /// Set maximum user count
         /// </summary>
         public void SetMaxUserCount(int? maxUserCount)
         {
             if (maxUserCount.HasValue && maxUserCount.Value < 0)
-                throw new ArgumentException("最大用户数不能小于0", nameof(maxUserCount));
+                throw new ArgumentException("Maximum user count cannot be less than 0", nameof(maxUserCount));
 
             MaxUserCount = maxUserCount;
             SetUpdateTime();
         }
 
         /// <summary>
-        /// 设置自定义配置
+        /// Set custom configuration
         /// </summary>
         public void SetCustomConfig(string? customConfig)
         {
@@ -117,7 +117,7 @@ namespace NextAdmin.Core.Domain.Entities
         }
 
         /// <summary>
-        /// 检查租户是否已过期
+        /// Check if tenant is expired
         /// </summary>
         public bool IsExpired()
         {
@@ -125,7 +125,7 @@ namespace NextAdmin.Core.Domain.Entities
         }
 
         /// <summary>
-        /// 检查租户是否可用
+        /// Check if tenant is available
         /// </summary>
         public bool IsAvailable()
         {

@@ -1,7 +1,7 @@
 namespace NextAdmin.Application.DTOs.Users
 {
     /// <summary>
-    /// 登录DTO
+    /// Login DTO
     /// </summary>
     public class LoginDto
     {

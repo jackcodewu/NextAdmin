@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace NextAdmin.Application.DTOs.Bases.QueryPages
 {
     /// <summary>
-    /// 通用分页结果DTO
+    /// Generic paged result DTO
     /// </summary>
     public class PagedResultDto<T>
     {

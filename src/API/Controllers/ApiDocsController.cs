@@ -19,7 +19,7 @@ namespace NextAdmin.API.Controllers
         }
 
         /// <summary>
-        /// 获取API文档浏览器界面
+        /// Get API documentation browser interface
         /// </summary>
         [HttpGet("ui")]
         public ContentResult GetUI()
@@ -59,7 +59,7 @@ namespace NextAdmin.API.Controllers
                         })
                 }).ToList();
 
-            return Ok(ApiResponse<object>.SuccessResponse(controllers, "获取API文档成功"));
+            return Ok(ApiResponse<object>.SuccessResponse(controllers, "API documentation retrieved successfully"));
         }
 
         private string GetTypeSummary(Type type)
@@ -94,7 +94,7 @@ namespace NextAdmin.API.Controllers
 
         private string GetRoute(Type ctrl, MethodInfo act)
         {
-            // 获取控制器和方法上的Route特性
+            // Get Route attributes from controller and method
             var ctrlRoute = ctrl.GetCustomAttribute<RouteAttribute>()?.Template ?? $"api/{ctrl.Name.Replace("Controller", "")}";
             var actRoute = act.GetCustomAttribute<RouteAttribute>()?.Template;
             if (!string.IsNullOrEmpty(actRoute))

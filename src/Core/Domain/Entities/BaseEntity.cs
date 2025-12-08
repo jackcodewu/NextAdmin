@@ -5,51 +5,51 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace NextAdmin.Core.Domain.Entities
 {
     /// <summary>
-    /// 实体基类
+    /// Base entity class
     /// </summary>
     public abstract class BaseEntity
     {
         /// <summary>
-        /// 实体ID
+        /// Entity ID
         /// </summary>
         public ObjectId Id { get; set; }
 
         /// <summary>
-        /// 租户ID - 用于多租户数据隔离
+        /// Tenant ID - used for multi-tenant data isolation
         /// </summary>
         [BsonElement("TenantId")]
         public string? TenantId { get; set; }
 
         /// <summary>
-        /// 创建人ID
+        /// Creator ID
         /// </summary>
         public ObjectId CreatedById { get;private set; }
 
         /// <summary>
-        /// 最后更新人ID
+        /// Last updater ID
         /// </summary>
         public ObjectId UpdatedById { get; private set; }
 
         /// <summary>
-        /// 创建人
+        /// Creator name
         /// </summary>
         [BsonElement("CreatedByName")]
         public string? CreatedByName { get; private set; } = string.Empty;
 
         /// <summary>
-        /// 最后更新人
+        /// Last updater name
         /// </summary>
         [BsonElement("UpdatedByName")]
         public string? UpdatedByName { get; private set; } = string.Empty;
 
         /// <summary>
-        /// 创建时间
+        /// Creation time
         /// </summary>
         [BsonElement("CreateTime")]
         public virtual DateTime CreateTime { get; set; }
 
         /// <summary>
-        /// 最后更新时间
+        /// Last update time
         /// </summary>
         [BsonElement("UpdateTime")]
         public virtual DateTime UpdateTime { get; set; }
@@ -104,9 +104,9 @@ namespace NextAdmin.Core.Domain.Entities
         }
 
         /// <summary>
-        /// 设置租户ID
+        /// Set tenant ID
         /// </summary>
-        /// <param name="tenantId">租户ID</param>
+        /// <param name="tenantId">Tenant ID</param>
         public void SetTenantId(string tenantId)
         {
             if (string.IsNullOrWhiteSpace(tenantId)) throw new ArgumentException("tenantId is null or empty.", nameof(tenantId));

@@ -23,10 +23,10 @@ namespace NextAdmin.Application.Extensions
 
             var mapId = ObjectId.GenerateNewId();
 
-            // 1. 读取trackNode.csv
-            var nodes = File.ReadAllLines(nodeCsv).Skip(1); // 跳过表头
+            // 1. Read trackNode.csv
+            var nodes = File.ReadAllLines(nodeCsv).Skip(1); // Skip header
 
-            // 2. 读取track.csv
+            // 2. Read track.csv
             var trackList = new List<Track>();
             var trackLines = File.ReadAllLines(trackCsv).Skip(1);
 
@@ -41,11 +41,11 @@ namespace NextAdmin.Application.Extensions
                 string name = cols[4];
                 NodeType nodeType = NodeType.Normal;
 
-                if (name.Contains("起始点"))
+                if (name.Contains("StartPoint"))
                 {
                     nodeType = NodeType.Parking;
                 }
-                else if (name.Contains("转台"))
+                else if (name.Contains("TurningTable"))
                 {
                     nodeType = NodeType.TurningPoint;
                 }
@@ -82,7 +82,7 @@ namespace NextAdmin.Application.Extensions
                     var endNode = trackNodeList.FirstOrDefault(n => n.Id == nodeObjMap[toId].Id);
                     if (startNode == null || endNode == null)
                     {
-                        throw new Exception($"{lineName}没有连接节点");
+                        throw new Exception($"{lineName} has no connected nodes");
                     }
 
                     var dx = startNode.X - endNode.X;
@@ -93,12 +93,12 @@ namespace NextAdmin.Application.Extensions
 
 
                 var track = Track.Create(
-                    mapId, // 稍后赋值
+                    mapId, // Will be assigned later
                     nodeIdMap[fromId],
                     nodeIdMap[toId],
                     length,
-                    3.0, // 默认宽度
-                    TrackType.Main, // 默认类型
+                    3.0, // Default width
+                    TrackType.Main, // Default type
                     true,
                     lineName
                 );
@@ -108,7 +108,7 @@ namespace NextAdmin.Application.Extensions
             }
 
 
-            // 3. 读取vehicle.csv
+            // 3. Read vehicle.csv
             var vehicleList = new List<Vehicle>();
             var vehicleLines = File.ReadAllLines(vehicleCsv).Skip(1);
             int parkIdx = 0;
@@ -119,14 +119,14 @@ namespace NextAdmin.Application.Extensions
                 var cols = SplitCsv(line);
                 string name = cols[1];
                 int type = int.TryParse(cols[3], out var t) ? t : 1;
-                // 分配可停车节点
+                // Assign parking node
                 var parkNode = canParkNodes[parkIdx];
                 parkIdx++;
                 var vehicle = new Vehicle
                 (    name,
                     (float)parkNode.X,
                     (float)parkNode.Y,
-                    mapId, // 稍后赋值
+                    mapId, // Will be assigned later
                     parkNode.Id
                 );
                 parkNode.VehicleId= vehicle.Id;
@@ -134,12 +134,12 @@ namespace NextAdmin.Application.Extensions
                 vehicleList.Add(vehicle);
             }
 
-            // 4. 组装TrackMap
+            // 4. Assemble TrackMap
             //foreach (var n in trackNodeList) n.MapId = mapId;
             //foreach (var t in trackList) t.MapId = mapId;
             //foreach (var v in vehicleList) v.MapId = mapId;
 
-            // 轨道和节点关联
+            // Associate tracks with nodes
             foreach (var node in trackNodeList)
             {
                 node.ConnectedTacks = trackList
@@ -147,7 +147,7 @@ namespace NextAdmin.Application.Extensions
                     .ToList();
             }
 
-            var trackMap = new TrackMap(mapId, "轨道地图", "v1.0", "由CSV导入")
+            var trackMap = new TrackMap(mapId, "Track Map", "v1.0", "Imported from CSV")
             {
                 TrackNodes = trackNodeList,
                 Tracks = trackList,
@@ -163,7 +163,7 @@ namespace NextAdmin.Application.Extensions
             File.WriteAllText(jsonPath, json);
         }
 
-        // 简单CSV分割，支持逗号分隔和引号包裹
+        // Simple CSV split, supports comma separation and quote wrapping
         private static string[] SplitCsv(string line)
         {
             var result = new List<string>();

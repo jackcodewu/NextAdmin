@@ -7,7 +7,7 @@ using MongoDB.Bson;
 namespace NextAdmin.Application.Interfaces
 {
     /// <summary>
-    /// 通用应用服务接口，定义常用CRUD、批量、分页、条件、删除、统计等方法
+    /// Generic application service interface defining common CRUD, batch, pagination, conditional, delete, and statistics methods
     /// </summary>
     public interface IAppService<TEntity, TBaseDto, TCreateDto, TUpdateDto, TQueryDto, TBasesDto>
         where TEntity : AggregateRoot
@@ -23,7 +23,7 @@ namespace NextAdmin.Application.Interfaces
         Task<ApiResponse> UpdateAsync(TUpdateDto updateDto);
         Task<bool> UpdateAsync(TEntity entity);
         Task UpdateManyAsync(List<TEntity> entities);
-        // 1. 获取
+        // 1. Query
         Task<TBaseDto> GetAsync(string id);
         Task<TBaseDto> GetOneAsync(TQueryDto TQueryDto);
         Task<TEntity> GetOneEntityAsync(TQueryDto TQueryDto);
@@ -31,16 +31,16 @@ namespace NextAdmin.Application.Interfaces
         Task<List<TBasesDto>> GetAllAsync();
         Task<PagedResultDto<TBasesDto>> GetListPageAsync(TQueryDto queryDto, int pageNumber, int pageSize,string sortField = "CreateTime", bool isAsc = false);
         Task<ApiResponse> DeleteAsync(string id);
-        // 5. 统计
+        // 5. Statistics
         Task<long> CountAsync(TQueryDto TQueryDto);
         Task<List<OptionDto>> GetOptionsAsync();
         /// <summary>
-        /// 获取选项数据（带查询条件和排序）
+        /// Get option data (with query conditions and sorting)
         /// </summary>
-        /// <param name="queryDto">查询条件</param>
-        /// <param name="sortField">排序字段</param>
-        /// <param name="isAsc">是否升序</param>
-        /// <returns>选项数据列表</returns>
+        /// <param name="queryDto">Query conditions</param>
+        /// <param name="sortField">Sort field</param>
+        /// <param name="isAsc">Ascending order</param>
+        /// <returns>Option data list</returns>
         Task<List<OptionDto>> GetOptionsAsync(TQueryDto queryDto, string sortField = "CreateTime", bool isAsc = false);
         Task<TBaseDto> AddAsync(TEntity entity);
         Task<List<TEntity>> GetAllEntityAsync();

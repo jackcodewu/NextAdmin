@@ -3,57 +3,57 @@ using System;
 namespace NextAdmin.Application.DTOs.Captcha
 {
     /// <summary>
-    /// 滑动拼图验证码生成结果DTO
+    /// Sliding puzzle captcha generation result DTO
     /// </summary>
     public class CaptchaGenerateResultDto
     {
         /// <summary>
-        /// 验证码唯一Token，用于校验拼图的非身份验证
+        /// Unique captcha token for non-identity verification
         /// </summary>
         public string Token { get; set; }
 
         /// <summary>
-        /// 背景图Base64字符串
+        /// Background image Base64 string
         /// </summary>
         public string BackgroundImageBase64 { get; set; }
 
         /// <summary>
-        /// 滑块图Base64字符串
+        /// Slider image Base64 string
         /// </summary>
         public string SliderImageBase64 { get; set; }
 
         /// <summary>
-        /// 滑块Y坐标
+        /// Slider Y coordinate
         /// </summary>
         public int Y { get; set; }
 
         /// <summary>
-        /// 滑块X坐标
+        /// Slider X coordinate
         /// </summary>
         public int X { get; set; }
 
         /// <summary>
-        /// 滑块宽度
+        /// Slider width
         /// </summary>
         public int SliderWidth { get; set; }
 
         /// <summary>
-        /// 滑块高度
+        /// Slider height
         /// </summary>
         public int SliderHeight { get; set; }
 
         /// <summary>
-        /// 图片宽度
+        /// Image width
         /// </summary>
         public int Width { get; set; }
 
         /// <summary>
-        /// 图片高度
+        /// Image height
         /// </summary>
         public int Height { get; set; }
 
         /// <summary>
-        /// 滑块初始X坐标（前端滑块初始显示位置）
+        /// Slider initial X coordinate (frontend slider initial display position)
         /// </summary>
         public int SliderStartX { get; set; }
     }

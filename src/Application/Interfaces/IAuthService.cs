@@ -12,7 +12,7 @@ public interface IAuthService
     Task<UserInfo?> GetUserInfoAsync(string userId, CancellationToken cancellationToken = default);
     Task<bool> ChangePasswordAsync(string userId, ChangePasswordRequest request, CancellationToken cancellationToken = default);
     
-    // Redis TOKEN 管理方法
+    // Redis TOKEN management methods
     Task<bool> StoreTokenInRedisAsync(string userId, string token, DateTime expiresAt, CancellationToken cancellationToken = default);
     Task<string?> GetTokenFromRedisAsync(string userId, CancellationToken cancellationToken = default);
     Task<bool> RemoveTokenFromRedisAsync(string userId, CancellationToken cancellationToken = default);

@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 namespace NextAdmin.Application.DTOs.Bases.QueryPages
 {
     /// <summary>
-    /// 表达式树扩展方法，支持表达式合并（And/Or）
+    /// Expression tree extension methods, supports expression merging (And/Or)
     /// </summary>
     public static class ExpressionExtensions
     {
         /// <summary>
-        /// 合并两个表达式，等价于 expr1 AND expr2
+        /// Merges two expressions, equivalent to expr1 AND expr2
         /// </summary>
         public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
         {

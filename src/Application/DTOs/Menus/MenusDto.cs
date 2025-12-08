@@ -3,7 +3,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using NextAdmin.Application.DTOs.Menus;
 /// <summary>
-/// 菜单列表DTO
+/// Menu list DTO
 /// </summary>
 public class MenusDto : BasesDto
 {
@@ -23,7 +23,7 @@ public class MenusDto : BasesDto
     public string? Redirect { get; set; }
 
     /// <summary>
-    /// 子菜单
+    /// Child menus
     /// </summary>
     public List<MenusDto> Children { get; set; } = new();
 }

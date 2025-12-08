@@ -10,20 +10,20 @@ namespace NextAdmin.API.Extensions
         {
             var controllerType = controller.ControllerType;
 
-            // 仅对我们的动态泛型控制器应用此约定
+            // Only apply this convention to our dynamic generic controllers
             if (!controllerType.IsGenericType || controllerType.GetGenericTypeDefinition() != typeof(BaseController<,,,,,>))
             {
                 return;
             }
 
-            // 从泛型参数中获取实体名称, 如 'Menu'
+            // Get entity name from generic parameters, e.g. 'Menu'
             var entityType = controllerType.GetGenericArguments().First();
             var entityName = entityType.Name;
 
-            // 设置控制器名称，并移除 "Controller" 后缀
+            // Set controller name and remove "Controller" suffix
             controller.ControllerName = entityName;
 
-            // 为控制器添加 [Route] 和 [ApiController] 特性
+            // Add [Route] and [ApiController] attributes to controller
             var routeTemplate = $"api/{entityName}";
             controller.Selectors.Add(new SelectorModel
             {

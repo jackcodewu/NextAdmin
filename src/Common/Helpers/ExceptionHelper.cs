@@ -4,12 +4,12 @@ using System.Collections.Generic;
 namespace NextAdmin.Common.Helpers
 {
     /// <summary>
-    /// 异常帮助类
+    /// Exception helper class
     /// </summary>
     public static class ExceptionHelper
     {
         /// <summary>
-        /// 获取异常详细信息
+        /// Get exception details
         /// </summary>
         public static Dictionary<string, object> GetExceptionDetails(Exception ex)
         {
@@ -30,7 +30,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 检查异常是否可重试
+        /// Check if exception is retryable
         /// </summary>
         public static bool IsRetryableException(Exception ex)
         {
@@ -40,7 +40,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 获取异常的错误代码
+        /// Get error code from exception
         /// </summary>
         public static string GetErrorCode(Exception ex)
         {

@@ -18,7 +18,7 @@ public class ApplicationRole : MongoRole<ObjectId>
     public ObjectId TenantId { get; set; } = ObjectId.Empty;
 
     /// <summary>
-    /// 公司名称
+    /// Company name
     /// </summary>
     public string TenantName { get; set; }
 
@@ -26,13 +26,13 @@ public class ApplicationRole : MongoRole<ObjectId>
 
 
     /// <summary>
-    /// 角色拥有的权限码
+    /// Permission codes owned by the role
     /// </summary>
     public List<string> PermissionCodes { get; private set; } = new();
 
     private List<Permission> permissions = new();
     /// <summary>
-    /// 角色拥有的权限
+    /// Permissions owned by the role
     /// </summary>
     public List<Permission> Permissions
     {
@@ -45,7 +45,7 @@ public class ApplicationRole : MongoRole<ObjectId>
     }
 
     /// <summary>
-    ///角色拥有的菜单
+    /// Menus owned by the role
     /// </summary>
     public List<Menu> Menus { get; set; } = new();
 

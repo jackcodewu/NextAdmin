@@ -5,7 +5,7 @@ using System.Linq;
 namespace NextAdmin.Core.Domain.ValueObjects
 {
     /// <summary>
-    /// 值对象基类
+    /// Value object base class
     /// </summary>
     public abstract class ValueObject
     {

@@ -3,15 +3,15 @@ using System.ComponentModel.DataAnnotations;
 namespace NextAdmin.Application.DTOs.Bases
 {
     /// <summary>
-    /// 创建操作的基础DTO
+    /// Base DTO for create operations
     /// </summary>
     public class CreateDto
     {
         /// <summary>
-        /// 名称
+        /// Name
         /// </summary>
-        [Required(ErrorMessage = "名称不能为空")]
-        [StringLength(100, ErrorMessage = "名称长度不能超过100")]
+        [Required(ErrorMessage = "Name cannot be empty")]
+        [StringLength(100, ErrorMessage = "Name length cannot exceed 100")]
         public string Name { get; set; } = string.Empty;
     }
 }

@@ -8,16 +8,16 @@ namespace NextAdmin.API.Extensions
     {
         public void PopulateFeature(IEnumerable<ApplicationPart> parts, ControllerFeature feature)
         {
-            // 先获取所有已存在的、手写的控制器名称
+            // First get all existing manually written controller names
             var existingControllers = feature.Controllers.Select(c => c.Name).ToHashSet();
 
-            // 自动注册所有泛型控制器
+            // Automatically register all generic controllers
             foreach (var (entityType, baseDto, createDto, updateDto, queryDto, basesDto) in EntityDtoTypeHelper.GetAllEntityDtoTypes())
             {
                 var conventionalControllerName = $"{entityType.Name}Controller";
                 if (existingControllers.Contains(conventionalControllerName))
                 {
-                    // 如果存在，则跳过为此服务动态生成控制器
+                    // If exists, skip dynamically generating controller for this service
                     continue;
                 }
 
@@ -25,7 +25,7 @@ namespace NextAdmin.API.Extensions
                     .MakeGenericType(entityType, baseDto, createDto, updateDto, queryDto, basesDto)
                     .GetTypeInfo();
 
-                // 避免重复添加
+                // Avoid duplicate addition
                 if (!feature.Controllers.Contains(controllerType))
                 {
                     feature.Controllers.Add(controllerType);

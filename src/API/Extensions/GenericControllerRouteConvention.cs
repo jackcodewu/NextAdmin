@@ -15,7 +15,7 @@ namespace NextAdmin.API.Extensions
                 var entityName = entityType.Name;
                 controller.ControllerName = entityType.Name;
 
-                // 为控制器添加 [Route] 和 [ApiController] 特性
+                // Add [Route] and [ApiController] attributes to controller
                 var routeTemplate = $"api/{entityName}";
                 controller.Selectors.Add(new SelectorModel
                 {

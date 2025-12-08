@@ -10,12 +10,12 @@ namespace NextAdmin.Application.DTOs.Roles
     {
 
         /// <summary>
-        /// 角色描述
+        /// Role description
         /// </summary>
         public string? Description { get; set; }
 
         /// <summary>
-        /// 用户数量
+        /// User count
         /// </summary>
         public int UserCount { get; set; }
 

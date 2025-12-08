@@ -20,22 +20,22 @@ using System.Text.Json.Serialization;
 namespace NextAdmin.Infrastructure.Repositories
 {
     /// <summary>
-    /// MongoDB仓储基类
-    /// 提供基本的CRUD操作和集合访问
+    /// MongoDB repository base class
+    /// Provides basic CRUD operations and collection access
     /// </summary>
-    /// <typeparam name="TEntity">实体类型</typeparam>
+    /// <typeparam name="TEntity">Entity type</typeparam>
     public partial class BaseRepository<TEntity> : IBaseRepository<TEntity>
         where TEntity : AggregateRoot
     {
-        #region 局部更新配置
+        #region Partial Update Configuration
         /// <summary>
-        /// 属性反射缓存（静态，所有实例共享）
+        /// Property reflection cache (static, shared by all instances)
         /// </summary>
         private static readonly PropertyInfo[] CachedProperties;
         private static readonly HashSet<string> SkipPropertyNames = new() { "Id", "UpdateTime", "VIPCommands,CreatedById", "CreatedByName", "CreateTime" };
 
         /// <summary>
-        /// 检查属性是否有 BsonIgnore 特性
+        /// Check if property has BsonIgnore attribute
         /// </summary>
         private static bool HasBsonIgnoreAttribute(PropertyInfo property)
         {
@@ -43,11 +43,11 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 判断类型是否为 MongoDB 不支持序列化的类型
+        /// Determine if type is not supported for MongoDB serialization
         /// </summary>
         private static bool IsUnsupportedType(Type type)
         {
-            // 跳过 ConcurrentQueue 等并发集合类型
+            // Skip concurrent collection types like ConcurrentQueue
             if (type.IsGenericType)
             {
                 var genericTypeDef = type.GetGenericTypeDefinition();
@@ -61,9 +61,9 @@ namespace NextAdmin.Infrastructure.Repositories
             }
             return false;
         }
-        // 3. 更新
+        // 3. Update
         /// <summary>
-        /// 判断属性值是否有效（非默认值）
+        /// Determine if property value is valid (not default value)
         /// </summary>
         private static bool HasValue(object? value)
         {
@@ -75,30 +75,30 @@ namespace NextAdmin.Infrastructure.Repositories
                 string strValue => !string.IsNullOrWhiteSpace(strValue),
                 ObjectId objectIdValue => objectIdValue != ObjectId.Empty,
                 DateTime dateTimeValue => dateTimeValue != default,
-                System.Collections.ICollection collection => collection.Count >= 0, // 集合类型:只有非空集合才算有值
-                bool _ => true, // bool 类型: false 和 true 都是有效值，不应跳过
+                System.Collections.ICollection collection => collection.Count >= 0, // Collection type: only non-empty collections are considered to have value
+                bool _ => true, // bool type: both false and true are valid values, should not be skipped
                 _ when value.GetType().IsValueType => !value.Equals(Activator.CreateInstance(value.GetType())),
-                _ => true // 其他引用类型且不为 null
+                _ => true // Other reference types and not null
             };
         }
 
         /// <summary>
-        /// 构建更新定义（只包含有值的属性）
+        /// Build update definitions (only include properties with values)
         /// </summary>
         private static List<UpdateDefinition<TEntity>> BuildUpdateDefinitions(TEntity entity)
         {
             var updateDefinitionList = new List<UpdateDefinition<TEntity>>
             {
-                // 始终更新 UpdateTime
+                // Always update UpdateTime
                 Builders<TEntity>.Update.Set(x => x.UpdateTime, DateTime.UtcNow)
             };
 
-            // 使用缓存的属性信息
+            // Use cached property information
             foreach (var property in CachedProperties)
             {
                 var value = property.GetValue(entity);
 
-                // 只有有值时才添加到更新定义
+                // Only add to update definition if it has value
                 if (HasValue(value))
                 {
                     var updateDef = Builders<TEntity>.Update.Set(property.Name, value);
@@ -110,9 +110,9 @@ namespace NextAdmin.Infrastructure.Repositories
         } 
         #endregion
 
-        #region 字段
+        #region Fields
         /// <summary>
-        /// MongoDB数据库实例
+        /// MongoDB database instance
         /// </summary>
         protected readonly IMongoDatabase Database;
         private readonly string collectionName;
@@ -121,7 +121,7 @@ namespace NextAdmin.Infrastructure.Repositories
 
         private bool _supportsCaching = false;
         /// <summary>
-        /// 是否支持缓存
+        /// Whether supports caching
         /// </summary>
         public virtual bool SupportsCaching
         {
@@ -130,19 +130,19 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 缓存过期时间
+        /// Cache expiry time
         /// </summary>
         public virtual TimeSpan CacheExpiry { get; set; } = TimeSpan.FromMinutes(30);
 
         /// <summary>
-        /// 实体集合
+        /// Entity collection
         /// </summary>
         protected readonly IMongoCollection<TEntity> Collection; 
         #endregion
 
-        #region 构造函数 
+        #region Constructor 
         /// <summary>
-        /// 静态构造函数，初始化属性缓存
+        /// Static constructor, initialize property cache
         /// </summary>
         static BaseRepository()
         {
@@ -157,10 +157,10 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 构造函数
+        /// Constructor
         /// </summary>
-        /// <param name="database">MongoDB数据库实例</param>
-        /// <param name="collectionName">集合名称</param>
+        /// <param name="database">MongoDB database instance</param>
+        /// <param name="collectionName">Collection name</param>
         public BaseRepository(IMongoDatabase database, IRedisService? redisService = null, bool isUnique = false, string? key = null, bool isCache = true)
         {
             Database = database;
@@ -176,11 +176,11 @@ namespace NextAdmin.Infrastructure.Repositories
         }
         #endregion
         
-        #region 创建索引
+        #region Create Indexes
 
         protected void CreateNameIndex(bool isUnique)
         {
-            //Name唯一索引
+            // Name unique index
             var nameIndex = Builders<TEntity>.IndexKeys.Ascending(x => x.Name);
             Collection.Indexes.CreateOne(new CreateIndexModel<TEntity>(nameIndex, new CreateIndexOptions { Unique = isUnique }));
         }
@@ -190,18 +190,18 @@ namespace NextAdmin.Infrastructure.Repositories
             try
             {
 
-                // CreateTime降序索引
+                // CreateTime descending index
                 var createTimeIndex = Builders<TEntity>.IndexKeys.Descending(x => x.CreateTime);
                 Collection.Indexes.CreateOne(new CreateIndexModel<TEntity>(createTimeIndex));
 
-                // CreateTime + _id 复合索引（降序）- 用于 seek 分页
+                // CreateTime + _id composite index (descending) - for seek pagination
                 var createTimeIdDescIndex = Builders<TEntity>.IndexKeys
                     .Descending(x => x.CreateTime)
                     .Descending(x => x.Id);
                 Collection.Indexes.CreateOne(new CreateIndexModel<TEntity>(createTimeIdDescIndex,
                     new CreateIndexOptions { Name = "CreateTime_Id_desc" }));
 
-                // CreateTime + _id 复合索引（升序）- 用于 seek 分页
+                // CreateTime + _id composite index (ascending) - for seek pagination
                 var createTimeIdAscIndex = Builders<TEntity>.IndexKeys
                     .Ascending(x => x.CreateTime)
                     .Ascending(x => x.Id);
@@ -220,25 +220,25 @@ namespace NextAdmin.Infrastructure.Repositories
             }
             catch (MongoCommandException ex) when (ex.Message.Contains("An existing index has the same name"))
             {
-                // 索引已存在，忽略错误
-                LogHelper.Info($"索引已存在，跳过创建: {ex.Message}");
+                // Index already exists, ignore error
+                LogHelper.Info($"Index already exists, skipping creation: {ex.Message}");
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"创建索引时发生错误: {ex.Message}");
+                LogHelper.Error($"Error occurred while creating index: {ex.Message}");
                 throw;
             }
         } 
         #endregion
 
-        #region 新增功能
+        #region Add Functionality
 
-        // 2. 添加
+        // 2. Add
         /// <summary>
-        /// 添加实体
+        /// Add entity
         /// </summary>
-        /// <param name="TEntity">实体</param>
-        /// <returns>添加的实体</returns>
+        /// <param name="TEntity">Entity</param>
+        /// <returns>Added entity</returns>
         public virtual async Task<TEntity> AddAsync(TEntity TEntity, bool hasEmpty = false)
         {
             try
@@ -262,11 +262,11 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 批量添加实体
+        /// Batch add entities
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>
-        /// <param name="entities">实体列表</param>
-        /// <returns>添加成功的数量</returns>
+        /// <typeparam name="T">Entity type</typeparam>
+        /// <param name="entities">Entity list</param>
+        /// <returns>Number of successfully added entities</returns>
         public virtual async Task<int> AddManyAsync(List<TEntity> entities, bool hasEmpty = false)
         {
             try
@@ -288,28 +288,28 @@ namespace NextAdmin.Infrastructure.Repositories
         } 
         #endregion
 
-        #region 更新功能
+        #region Update Functionality
 
         /// <summary>
-        /// 更新实体（只更新非空属性）
+        /// Update entity (only update non-empty properties)
         /// </summary>
-        /// <param name="id">实体ID</param>
-        /// <param name="TEntity">实体</param>
-        /// <param name="hasEmpty">是否允许空的 TenantId</param>
-        /// <returns>更新后的实体</returns>
+        /// <param name="id">Entity ID</param>
+        /// <param name="TEntity">Entity</param>
+        /// <param name="hasEmpty">Whether to allow empty TenantId</param>
+        /// <returns>Updated entity</returns>
         public virtual async Task<TEntity> UpdateAsync(ObjectId id, TEntity TEntity, bool hasEmpty = false)
         {
             try
             {
 
-                // 构建更新定义
+                // Build update definition
                 var updateDefinitionList = BuildUpdateDefinitions(TEntity);
 
-                // 如果没有需要更新的字段，返回原实体
+                // If no fields need updating, return original entity
                 if (updateDefinitionList.Count == 0)
                     return await GetByIdAsync(id);
 
-                // 合并所有更新定义
+                // Combine all update definitions
                 var updateDefinition = Builders<TEntity>.Update.Combine(updateDefinitionList);
 
                 var options = new FindOneAndUpdateOptions<TEntity>
@@ -339,25 +339,25 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 更新实体（只更新非空属性）
+        /// Update entity (only update non-empty properties)
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>
-        /// <param name="TEntity">实体</param>
-        /// <param name="hasEmpty">是否允许空的 TenantId</param>
-        /// <returns>是否成功</returns>
+        /// <typeparam name="T">Entity type</typeparam>
+        /// <param name="TEntity">Entity</param>
+        /// <param name="hasEmpty">Whether to allow empty TenantId</param>
+        /// <returns>Whether successful</returns>
         public virtual async Task<bool> UpdateAsync(TEntity TEntity, bool hasEmpty = false)
         {
             try
             {
 
-                // 构建更新定义
+                // Build update definition
                 var updateDefinitionList = BuildUpdateDefinitions(TEntity);
 
-                // 如果没有需要更新的字段，直接返回
+                // If no fields need updating, return directly
                 if (updateDefinitionList.Count == 0)
                     return true;
 
-                // 合并所有更新定义
+                // Combine all update definitions
                 var updateDefinition = Builders<TEntity>.Update.Combine(updateDefinitionList);
 
                 var collection = Database.GetCollection<TEntity>(collectionName);
@@ -367,7 +367,7 @@ namespace NextAdmin.Infrastructure.Repositories
                 if (SupportsCaching && result.ModifiedCount > 0)
                 {
                     await DelCache();
-                    // 重新获取完整实体并缓存
+                    // Re-fetch complete entity and cache
                     var updatedEntity = await GetByIdAsync(TEntity.Id);
                     if (updatedEntity != null)
                     {
@@ -385,10 +385,10 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 批量更新实体（只更新非空属性）
+        /// Batch update entities (only update non-empty properties)
         /// </summary>
-        /// <param name="entities">实体列表</param>
-        /// <param name="hasEmpty">是否允许空的 TenantId</param>
+        /// <param name="entities">Entity list</param>
+        /// <param name="hasEmpty">Whether to allow empty TenantId</param>
         public virtual async Task UpdateManyAsync(List<TEntity> entities, bool hasEmpty = false)
         {
             try
@@ -399,10 +399,10 @@ namespace NextAdmin.Infrastructure.Repositories
                 var bulkOps = new List<WriteModel<TEntity>>();
                 foreach (var entity in entities)
                 {
-                    // 使用优化后的方法构建更新定义
+                    // Use optimized method to build update definition
                     var updateDefinitionList = BuildUpdateDefinitions(entity);
 
-                    // 如果有需要更新的字段，添加到批量操作
+                    // If there are fields to update, add to batch operation
                     if (updateDefinitionList.Count > 0)
                     {
                         var filter = Builders<TEntity>.Filter.Eq(e => e.Id, entity.Id);
@@ -426,9 +426,9 @@ namespace NextAdmin.Infrastructure.Repositories
         #endregion
 
 
-        #region 查询功能
+        #region Query Functionality
         /// <summary>
-        /// 生成带 TenantId 的基础过滤器
+        /// Generate base filter with TenantId
         /// </summary>
         protected FilterDefinition<TEntity> BuildTenantFilter(ObjectId TenantId)
         {
@@ -437,9 +437,9 @@ namespace NextAdmin.Infrastructure.Repositories
             return filter;
         }
 
-        // 1. 获取
+        // 1. Get
         /// <summary>
-        /// 根据ID和公司ID获取实体
+        /// Get entity by ID and company ID
         /// </summary>
         public virtual async Task<TEntity> GetByIdAsync(ObjectId id)
         {
@@ -455,7 +455,7 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 获取单个实体（带公司ID）
+        /// Get single entity (with company ID)
         /// </summary>
         public virtual async Task<TEntity?> GetOneAsync(FilterDefinition<TEntity> filter, ObjectId TenantId)
         {
@@ -483,14 +483,14 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 获取所有实体（带公司ID）
+        /// Get all entities (with company ID)
         /// </summary>
         public virtual async Task<List<TEntity>> GetAllAsync(ObjectId TenantId)
         {
-            // 生成缓存键（无参数方法使用固定键）
+            // Generate cache key (use fixed key for parameterless method)
             var cacheKey = $"{_key}:all";
 
-            // 尝试从缓存获取
+            // Try to get from cache
             if (SupportsCaching)
             {
                 var entities = await _redisService.GetObjectAsync<List<TEntity>>(cacheKey);
@@ -511,14 +511,14 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 获取所有实体（带公司ID和排序）
+        /// Get all entities (with company ID and sorting)
         /// </summary>
         public virtual async Task<List<TEntity>> GetAllAsync(ObjectId TenantId, string sortField = "CreateTime", bool isAsc = false)
         {
-            // 生成缓存键（无参数方法使用固定键）
+            // Generate cache key (use fixed key for parameterless method)
             var cachekey = $"{_key}:all:e";
 
-            // 尝试从缓存获取
+            // Try to get from cache
             if (SupportsCaching)
             {
                 var cachedDtos = await _redisService.GetObjectAsync<List<TEntity>>(cachekey);
@@ -546,7 +546,7 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 条件查询（带公司ID）
+        /// Conditional query (with company ID)
         /// </summary>
         public virtual async Task<List<TEntity>> GetAsync(FilterDefinition<TEntity> predicate, ObjectId TenantId)
         {
@@ -570,7 +570,7 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 条件查询（带公司ID和排序）
+        /// Conditional query (with company ID and sorting)
         /// </summary>
         public virtual async Task<List<TEntity>> GetAsync(FilterDefinition<TEntity> predicate, ObjectId TenantId, string sortField = "CreateTime", bool isAsc = false)
         {
@@ -604,7 +604,7 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 条件查询并直接投影为指定类型（带公司ID和排序）
+        /// Conditional query with direct projection to specified type (with company ID and sorting)
         /// </summary>
         public virtual async Task<List<TProjection>> GetAsync<TProjection>(FilterDefinition<TEntity> predicate, ObjectId TenantId, ProjectionDefinition<TEntity, TProjection>? projection = null, string sortField = "CreateTime", bool isAsc = false)
         {
@@ -653,7 +653,7 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 条件查询（使用MongoDB原生过滤器，带公司ID和排序）
+        /// Conditional query (using MongoDB native filter, with company ID and sorting)
         /// </summary>
         public virtual async Task<List<TEntity>> GetAsync(FilterDefinition<TEntity> filter, string sortField = "CreateTime", bool isAsc = false)
         {
@@ -663,10 +663,10 @@ namespace NextAdmin.Infrastructure.Repositories
                 baseFilter &= filter;
 
 
-            // 生成缓存键（无参数方法使用固定键）
+            // Generate cache key (use fixed key for parameterless method)
             var cacheKey = GenerateCacheKey($"{_key}:sort", baseFilter);
 
-            // 尝试从缓存获取
+            // Try to get from cache
             if (SupportsCaching)
             {
                 var cachentities = await _redisService.GetObjectAsync<List<TEntity>>(cacheKey);
@@ -695,8 +695,8 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 获取分页数据（使用 Seek 游标分页，支持 CreateTime + _id 排序）
-        /// 游标信息保存到 Redis，支持随机页跳转
+        /// Get paginated data (using Seek cursor pagination, supports CreateTime + _id sorting)
+        /// Cursor information saved to Redis, supports random page jumping
         /// </summary>
         public virtual async Task<(List<TEntity> Items, long Total)> GetListPageAsync(
             int pageNumber, int pageSize, FilterDefinition<TEntity>? expression, ObjectId TenantId, string sortField = "CreateTime", bool isAsc = false)
@@ -708,13 +708,13 @@ namespace NextAdmin.Infrastructure.Repositories
             if (expression != null)
                 filter &= expression;
 
-            // 生成游标缓存键（包含筛选条件和排序）
+            // Generate cursor cache key (including filter conditions and sorting)
             var filterHash = GenerateFilterCacheKey(filter);
             var sortDirection = isAsc ? "asc" : "desc";
             var cursorCacheKeyPrefix = $"{_key}:cursor:{filterHash}:{sortField}:{sortDirection}";
             var dataCacheKey = $"{cursorCacheKeyPrefix}:page:{pageNumber}:{pageSize}";
 
-            // 尝试从缓存获取数据
+            // Try to get data from cache
             if (SupportsCaching)
             {
                 var cached = await GetCacheObjectAsync<(List<TEntity> Items, long Total)>(dataCacheKey);
@@ -722,10 +722,10 @@ namespace NextAdmin.Infrastructure.Repositories
                     return cached;
             }
 
-            // 获取总数（并行）
+            // Get total count (parallel)
             var totalTask = CountAsync(filter, TenantId);
 
-            // 获取或计算游标位置
+            // Get or calculate cursor position
             string cursorKey = $"{cursorCacheKeyPrefix}:page:{pageNumber - 1}";
             SeekCursor? cursor = null;
 
@@ -734,11 +734,11 @@ namespace NextAdmin.Infrastructure.Repositories
                 cursor = await GetCacheObjectAsync<SeekCursor>(cursorKey);
             }
 
-            // 构建查询
+            // Build query
             var seekFilter = filter;
             if (cursor != null)
             {
-                // 使用游标继续查询
+                // Continue query using cursor
                 if (isAsc)
                 {
                     seekFilter &= Builders<TEntity>.Filter.Or(
@@ -761,17 +761,17 @@ namespace NextAdmin.Infrastructure.Repositories
                 }
             }
 
-            // 构建排序
+            // Build sorting
             var sortDefinition = isAsc
                 ? Builders<TEntity>.Sort.Ascending(sortField).Ascending(x => x.Id)
                 : Builders<TEntity>.Sort.Descending(sortField).Descending(x => x.Id);
 
-            // 执行查询
+            // Execute query
             var query = Collection.Find(seekFilter).Sort(sortDefinition).Limit(pageSize);
             var items = await query.ToListAsync();
             var total = await totalTask;
 
-            // 保存当前页的游标到 Redis（用于下一页）
+            // Save current page cursor to Redis (for next page)
             if (SupportsCaching && items.Count > 0)
             {
                 var lastItem = items[items.Count - 1];
@@ -787,7 +787,7 @@ namespace NextAdmin.Infrastructure.Repositories
                 var nextCursorKey = $"{cursorCacheKeyPrefix}:page:{pageNumber}";
                 await SetCacheObjectAsync(nextCursorKey, nextCursor, TimeSpan.FromMinutes(30));
 
-                // 缓存数据结果
+                // Cache data result
                 await SetCacheObjectAsync(dataCacheKey, (items, total), TimeSpan.FromMinutes(10));
             }
 
@@ -795,12 +795,12 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 获取分页数据（使用 Seek 游标分页 + MongoDB 投影，返回轻量 DTO）
-        /// 游标信息保存到 Redis，支持随机页跳转
-        /// 适用于列表查询，避免加载大字段（如 Commands）
+        /// Get paginated data (using Seek cursor pagination + MongoDB projection, returns lightweight DTO)
+        /// Cursor information saved to Redis, supports random page jumping
+        /// Suitable for list queries, avoids loading large fields (e.g., Commands)
         /// </summary>
-        /// <typeparam name="TProjection">投影类型（轻量 DTO）</typeparam>
-        // ===================== BaseRepository<TEntity> 类内 =====================
+        /// <typeparam name="TProjection">Projection type (lightweight DTO)</typeparam>
+        // ===================== Inside BaseRepository<TEntity> class =====================
 
         public virtual async Task<(List<TProjection> Items, long Total)> GetListPageAsync<TProjection>(
             int pageNumber,
@@ -818,14 +818,14 @@ namespace NextAdmin.Infrastructure.Repositories
             if (expression != null)
                 filter &= expression;
 
-            // 生成缓存键（包含筛选条件/排序/投影）——与原实现保持一致
+            // Generate cache key (including filter conditions/sorting/projection) - consistent with original implementation
             var filterHash = GenerateFilterCacheKey(filter);
             var sortDirection = isAsc ? "asc" : "desc";
             var projectionHash = projection?.ToString()?.GetHashCode().ToString() ?? "full";
             var cursorCacheKeyPrefix = $"{_key}:cursor:{filterHash}:{sortField}:{sortDirection}:{projectionHash}";
             var dataCacheKey = $"{cursorCacheKeyPrefix}:page:{pageNumber}:{pageSize}";
 
-            // 先尝试命中整页缓存
+            // First try to hit full page cache
             if (SupportsCaching)
             {
                 var cached = await GetCacheObjectAsync<(List<TProjection> Items, long Total)>(dataCacheKey);
@@ -833,10 +833,10 @@ namespace NextAdmin.Infrastructure.Repositories
                     return cached;
             }
 
-            // 并行计算总数
+            // Calculate total count in parallel
             var totalTask = CountAsync(filter, TenantId);
 
-            // 读取上一页游标（用于 Seek）
+            // Read previous page cursor (for Seek)
             string cursorKey = $"{cursorCacheKeyPrefix}:page:{pageNumber - 1}";
             SeekCursor? cursor = null;
 
@@ -845,7 +845,7 @@ namespace NextAdmin.Infrastructure.Repositories
                 cursor = await GetCacheObjectAsync<SeekCursor>(cursorKey);
             }
 
-            // ====== ✅ 兜底：缺上一页游标时，用 Skip/Limit 直接拿这一页 ======
+            // ====== ✅ Fallback: when previous page cursor is missing, use Skip/Limit to get this page directly ======
             if (pageNumber > 1 && SupportsCaching && cursor is null)
             {
                 var sortForSkip = isAsc
@@ -863,7 +863,7 @@ namespace NextAdmin.Infrastructure.Repositories
 
                 var total2 = await totalTask;
 
-                // 写回“本页”的游标 & 缓存本页数据（便于下一页/刷新）
+                // Write back "current page" cursor & cache current page data (for next page/refresh)
                 if (SupportsCaching && items2.Count > 0)
                 {
                     var last = items2[^1];
@@ -888,9 +888,9 @@ namespace NextAdmin.Infrastructure.Repositories
 
                 return (items2, total2);
             }
-            // ====== ✅ 兜底结束，正常 Seek 路径继续 ======
+            // ====== ✅ Fallback ends, normal Seek path continues ======
 
-            // 构建 Seek 过滤
+            // Build Seek filter
             var seekFilter = filter;
             if (cursor != null)
             {
@@ -916,12 +916,12 @@ namespace NextAdmin.Infrastructure.Repositories
                 }
             }
 
-            // 排序：主排序 + Id 作为稳定性二级排序
+            // Sorting: primary sort + Id as stable secondary sort
             var sortDefinition = isAsc
                 ? Builders<TEntity>.Sort.Ascending(sortField).Ascending(x => x.Id)
                 : Builders<TEntity>.Sort.Descending(sortField).Descending(x => x.Id);
 
-            // 执行查询（可带投影）
+            // Execute query (with optional projection)
             var findBase = Collection.Find(seekFilter).Sort(sortDefinition).Limit(pageSize);
 
             List<TProjection> items;
@@ -953,7 +953,7 @@ namespace NextAdmin.Infrastructure.Repositories
 
             var total = await totalTask;
 
-            // 保存本页的游标与数据
+            // Save cursor and data for current page
             if (SupportsCaching && items.Count > 0 && lastId2.HasValue && lastSortValue2 != null)
             {
                 var nextCursor = new SeekCursor
@@ -974,7 +974,7 @@ namespace NextAdmin.Infrastructure.Repositories
 
 
         /// <summary>
-        /// 从投影对象中提取 Id
+        /// Extract Id from projection object
         /// </summary>
         private ObjectId? TryGetIdFromProjection<T>(T item)
         {
@@ -992,7 +992,7 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 从投影对象中提取排序字段值
+        /// Extract sort field value from projection object
         /// </summary>
         private BsonValue? TryGetSortValueFromProjection<T>(T item, string fieldName)
         {
@@ -1007,7 +1007,7 @@ namespace NextAdmin.Infrastructure.Repositories
                 var value = prop.GetValue(item);
                 if (value == null) return BsonNull.Value;
 
-                // 转换为 BsonValue
+                // Convert to BsonValue
                 if (value is DateTime dt) return new BsonDateTime(dt);
                 if (value is string str) return new BsonString(str);
                 if (value is int intVal) return new BsonInt32(intVal);
@@ -1024,7 +1024,7 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 游标信息类
+        /// Cursor information class
         /// </summary>
         private class SeekCursor
         {
@@ -1035,7 +1035,7 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 通过反射获取排序字段的值
+        /// Get sort field value through reflection
         /// </summary>
         private BsonValue GetSortFieldValue(TEntity entity, string fieldName)
         {
@@ -1049,7 +1049,7 @@ namespace NextAdmin.Infrastructure.Repositories
                 if (value == null)
                     return BsonNull.Value;
 
-                // 转换为 BsonValue
+                // Convert to BsonValue
                 if (value is DateTime dt)
                     return new BsonDateTime(dt);
                 if (value is string str)
@@ -1063,7 +1063,7 @@ namespace NextAdmin.Infrastructure.Repositories
                 if (value is ObjectId objId)
                     return new BsonObjectId(objId);
 
-                // 默认转换
+                // Default conversion
                 return BsonValue.Create(value);
             }
             catch
@@ -1072,9 +1072,9 @@ namespace NextAdmin.Infrastructure.Repositories
             }
         }
 
-        // 5. 统计
+        // 5. Count
         /// <summary>
-        /// 获取实体数量（带公司ID）
+        /// Get entity count (with company ID)
         /// </summary>
         public async Task<long> CountAsync(FilterDefinition<TEntity> filter, ObjectId TenantId)
         {
@@ -1085,7 +1085,7 @@ namespace NextAdmin.Infrastructure.Repositories
 
             var cacheKey = GenerateCacheKey($"{_key}:count", baseFilter);
 
-            // 尝试从缓存获取
+            // Try to get from cache
             if (SupportsCaching)
             {
                 var cached = await GetCacheObjectAsync<long?>(cacheKey);
@@ -1108,7 +1108,7 @@ namespace NextAdmin.Infrastructure.Repositories
 
             var cacheKey = GenerateCacheKey($"{_key}:count:all", baseFilter);
 
-            // 尝试从缓存获取
+            // Try to get from cache
             if (SupportsCaching)
             {
                 var cached = await GetCacheObjectAsync<long?>(cacheKey);
@@ -1125,11 +1125,11 @@ namespace NextAdmin.Infrastructure.Repositories
         }
         #endregion
 
-        #region 删除功能
+        #region Delete Functionality
 
-        // 4. 删除
+        // 4. Delete
         /// <summary>
-        /// 删除实体（带公司ID）
+        /// Delete entity (with company ID)
         /// </summary>
         public virtual async Task<bool> DeleteAsync(ObjectId id)
         {
@@ -1147,19 +1147,19 @@ namespace NextAdmin.Infrastructure.Repositories
 
         #endregion
 
-        #region 缓存相关
-        // 其他辅助方法
+        #region Cache Related
+        // Other helper methods
         /// <summary>
-        /// 获取集合名称
+        /// Get collection name
         /// </summary>
-        /// <returns>集合名称</returns>
+        /// <returns>Collection name</returns>
         public string GetCollectionName()
         {
             return collectionName;
         }
 
         /// <summary>
-        /// 获取缓存值
+        /// Get cache value
         /// </summary>
         public virtual async Task<T?> GetCacheObjectAsync<T>(string cacheKey)
         {
@@ -1172,13 +1172,13 @@ namespace NextAdmin.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                LogHelper.Warn($"获取缓存失败: {cacheKey}, {ex.Message}");
+                LogHelper.Warn($"Failed to get cache: {cacheKey}, {ex.Message}");
                 return default;
             }
         }
 
         /// <summary>
-        /// 设置缓存值
+        /// Set cache value
         /// </summary>
         public virtual async Task SetCacheObjectAsync<T>(string cacheKey, T value, TimeSpan? expiry = null)
         {
@@ -1192,12 +1192,12 @@ namespace NextAdmin.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                LogHelper.Warn($"设置缓存失败: {cacheKey}, {ex.Message}");
+                LogHelper.Warn($"Failed to set cache: {cacheKey}, {ex.Message}");
             }
         }
 
         /// <summary>
-        /// 删除缓存
+        /// Delete cache
         /// </summary>
         protected async Task DelCache(string? _key = null)
         {
@@ -1211,7 +1211,7 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 删除指定缓存
+        /// Delete specified cache
         /// </summary>
         public virtual async Task RemoveCacheObjectAsync(string cacheKey)
         {
@@ -1224,12 +1224,12 @@ namespace NextAdmin.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                LogHelper.Warn($"删除缓存失败: {cacheKey}, {ex.Message}");
+                LogHelper.Warn($"Failed to delete cache: {cacheKey}, {ex.Message}");
             }
         }
 
         /// <summary>
-        /// 根据前缀批量删除缓存
+        /// Batch delete cache by prefix
         /// </summary>
         public virtual async Task RemoveCacheByPrefixAsync(string cacheKeyPrefix)
         {
@@ -1250,19 +1250,19 @@ namespace NextAdmin.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                LogHelper.Warn($"批量删除缓存失败: {cacheKeyPrefix}, {ex.Message}");
+                LogHelper.Warn($"Failed to batch delete cache: {cacheKeyPrefix}, {ex.Message}");
             }
         } 
         #endregion
 
-        #region 高级缓存方法
+        #region Advanced Cache Methods
 
         /// <summary>
-        /// 生成 FilterDefinition 的缓存键哈希
-        /// 将 MongoDB Filter 渲染为 BSON JSON 并计算 MD5
+        /// Generate cache key hash for FilterDefinition
+        /// Render MongoDB Filter as BSON JSON and calculate MD5
         /// </summary>
-        /// <param name="filter">MongoDB 过滤器</param>
-        /// <returns>MD5 哈希字符串</returns>
+        /// <param name="filter">MongoDB filter</param>
+        /// <returns>MD5 hash string</returns>
         protected string GenerateFilterCacheKey(FilterDefinition<TEntity>? filter)
         {
             if (filter == null)
@@ -1270,40 +1270,40 @@ namespace NextAdmin.Infrastructure.Repositories
 
             try
             {
-                // 获取 MongoDB 序列化器
+                // Get MongoDB serializer
                 var serializerRegistry = BsonSerializer.SerializerRegistry;
                 var documentSerializer = serializerRegistry.GetSerializer<TEntity>();
 
-                // 将 Filter 渲染为 BsonDocument
+                // Render Filter as BsonDocument
                 var rendered = filter.Render(new RenderArgs<TEntity>
                 {
                     DocumentSerializer = documentSerializer,
                     SerializerRegistry = serializerRegistry
                 });
 
-                // 转换为 JSON 字符串
+                // Convert to JSON string
                 var json = rendered.ToJson();
 
-                // 计算 MD5 哈希
+                // Calculate MD5 hash
                 byte[] utf8 = Encoding.UTF8.GetBytes(json);
                 byte[] hash = MD5.HashData(utf8);
                 return Convert.ToHexString(hash).ToLowerInvariant();
             }
             catch (Exception ex)
             {
-                // 如果渲染失败，使用时间戳作为后备（不使用缓存）
-                LogHelper.Warn($"生成Filter缓存键失败: {ex.Message}");
+                // If rendering fails, use timestamp as fallback (no caching)
+                LogHelper.Warn($"Failed to generate Filter cache key: {ex.Message}");
                 return $"filter_{DateTime.UtcNow.Ticks}";
             }
         }
 
         /// <summary>
-        /// 生成带参数的缓存键
+        /// Generate cache key with parameters
         /// </summary>
-        /// <param name="prefix">缓存键前缀</param>
-        /// <param name="filter">MongoDB 过滤器</param>
-        /// <param name="suffix">额外后缀（如排序信息）</param>
-        /// <returns>完整的缓存键</returns>
+        /// <param name="prefix">Cache key prefix</param>
+        /// <param name="filter">MongoDB filter</param>
+        /// <param name="suffix">Additional suffix (such as sorting information)</param>
+        /// <returns>Complete cache key</returns>
         protected string GenerateCacheKey(string prefix, FilterDefinition<TEntity>? filter, string? suffix = null)
         {
             var filterHash = GenerateFilterCacheKey(filter);

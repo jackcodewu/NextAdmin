@@ -6,7 +6,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace NextAdmin.Application.DTOs.Menus
 {
     /// <summary>
-    /// 更新菜单DTO
+    /// Update menu DTO
     /// </summary>
     public class UpdateMenuDto : UpdateDto
     {

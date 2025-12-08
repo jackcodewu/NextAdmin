@@ -9,11 +9,11 @@ namespace NextAdmin.Application.Extensions
     {
         public bool AllowEmpty { get; set; }
 
-        public ObjectIdAttribute() : base("不是合法的ObjectId") { }
+        public ObjectIdAttribute() : base("Not a valid ObjectId") { }
 
         public override bool IsValid(object value)
         {
-            if (value is null) return true;          // 交给 [Required]
+            if (value is null) return true;          // Let [Required] handle it
             if (value is not string s) return false;
             if (string.IsNullOrWhiteSpace(s)) return AllowEmpty;
             if (!ObjectId.TryParse(s, out var oid)) return false;

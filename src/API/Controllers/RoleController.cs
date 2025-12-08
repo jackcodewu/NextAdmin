@@ -14,7 +14,7 @@ using static NextAdmin.Application.Constants.PermissionsDefine;
 namespace NextAdmin.API.Controllers;
 
 /// <summary>
-/// 角色管理控制器
+/// Role management controller
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -29,7 +29,7 @@ public class RoleController : ControllerBase
     }
 
     /// <summary>
-    /// 获取角色列表
+    /// Get roles list
     /// </summary>
     [HttpGet]
     [Authorize(Policy = RolePermissions.View)]
@@ -39,22 +39,22 @@ public class RoleController : ControllerBase
         [FromQuery] int pageSize = 10)
     {
         var result = await _roleManagementService.GetRolesAsync(roleQueryDto,pageNumber, pageSize);
-        return Ok(ApiResponse<PagedResultDto<RolesDto>>.SuccessResponse(result, "查询成功"));
+        return Ok(ApiResponse<PagedResultDto<RolesDto>>.SuccessResponse(result, "Query successful"));
     }
 
     /// <summary>
-    /// 获取所有角色（不分页）
+    /// Get all roles (without paging)
     /// </summary>
     [HttpGet("all")]
     [Authorize(Policy = RolePermissions.View)]
     private async Task<IActionResult> GetAllRoles()
     {
         var roles = await _roleManagementService.GetAllRolesAsync();
-        return Ok(ApiResponse<List<RoleDto>>.SuccessResponse(roles, "查询成功"));
+        return Ok(ApiResponse<List<RoleDto>>.SuccessResponse(roles, "Query successful"));
     }
     
     /// <summary>
-     /// 获取所有value/lable数据
+     /// Get all value/label data
      /// </summary>
      /// <returns></returns>
     [HttpGet("options")]
@@ -63,11 +63,11 @@ public class RoleController : ControllerBase
     {
         var all = await _roleManagementService.GetOptionsAsync();
 
-        return Ok(ApiResponse<List<OptionDto>>.SuccessResponse(all, "查询成功"));
+        return Ok(ApiResponse<List<OptionDto>>.SuccessResponse(all, "Query successful"));
     }
 
     /// <summary>
-    /// 根据ID获取角色
+    /// Get role by ID
     /// </summary>
     [HttpGet("{id}")]
     [Authorize(Policy = RolePermissions.View)]
@@ -76,14 +76,14 @@ public class RoleController : ControllerBase
         var role = await _roleManagementService.GetRoleByIdAsync(id);
         if (role == null)
         {
-            return NotFound("角色不存在");
+            return NotFound("Role does not exist");
         }
 
-        return Ok(ApiResponse<RoleDto>.SuccessResponse(role, "查询成功"));
+        return Ok(ApiResponse<RoleDto>.SuccessResponse(role, "Query successful"));
     }
 
     /// <summary>
-    /// 根据名称获取角色
+    /// Get role by name
     /// </summary>
     [HttpGet("by-name/{name}")]
     [Authorize(Policy = RolePermissions.View)]
@@ -92,14 +92,14 @@ public class RoleController : ControllerBase
         var role = await _roleManagementService.GetRoleByNameAsync(name);
         if (role == null)
         {
-            return NotFound("角色不存在");
+            return NotFound("Role does not exist");
         }
 
-        return Ok(ApiResponse<RoleDto>.SuccessResponse(role, "查询成功"));
+        return Ok(ApiResponse<RoleDto>.SuccessResponse(role, "Query successful"));
     }
 
     /// <summary>
-    /// 创建角色
+    /// Create role
     /// </summary>
     [HttpPost]
     [Authorize(Policy = RolePermissions.Create)]
@@ -114,14 +114,14 @@ public class RoleController : ControllerBase
         if (result.IsSuccess)
         {
 
-            return Ok(ApiResponse<RoleDto>.SuccessResponse(result.Data, "查询成功"));
+            return Ok(ApiResponse<RoleDto>.SuccessResponse(result.Data, "Query successful"));
         }
 
         return BadRequest(result.ErrorMessage);
     }
 
     /// <summary>
-    /// 更新角色
+    /// Update role
     /// </summary>
     [HttpPut("{id}")]
     [Authorize(Policy = RolePermissions.Edit)]
@@ -136,14 +136,14 @@ public class RoleController : ControllerBase
         if (result.IsSuccess)
         {
 
-            return Ok(ApiResponse<bool>.SuccessResponse(true, "查询成功"));
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Query successful"));
         }
 
         return BadRequest(result.ErrorMessage);
     }
 
     /// <summary>
-    /// 删除角色
+    /// Delete role
     /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Policy = RolePermissions.Delete)]
@@ -159,7 +159,7 @@ public class RoleController : ControllerBase
     }
 
     /// <summary>
-    /// 获取角色的用户列表
+    /// Get role's user list
     /// </summary>
     [HttpGet("{id}/users")]
     [Authorize(Policy = RolePermissions.View)]
@@ -167,6 +167,6 @@ public class RoleController : ControllerBase
     {
         var users = await _roleManagementService.GetRoleUsersAsync(id);
 
-        return Ok(ApiResponse<List<UserDto>>.SuccessResponse(users, "查询成功"));
+        return Ok(ApiResponse<List<UserDto>>.SuccessResponse(users, "Query successful"));
     }
 } 

@@ -1,37 +1,37 @@
 namespace NextAdmin.Common.Interfaces.Services
 {
     /// <summary>
-    /// 日志服务接口
+    /// Logging service interface
     /// </summary>
     public interface ILoggingService
     {
         /// <summary>
-        /// 记录信息日志
+        /// Log information message
         /// </summary>
-        /// <param name="message">日志消息</param>
-        /// <param name="args">参数</param>
+        /// <param name="message">Log message</param>
+        /// <param name="args">Arguments</param>
         void LogInformation(string message, params object[] args);
 
         /// <summary>
-        /// 记录警告日志
+        /// Log warning message
         /// </summary>
-        /// <param name="message">日志消息</param>
-        /// <param name="args">参数</param>
+        /// <param name="message">Log message</param>
+        /// <param name="args">Arguments</param>
         void LogWarning(string message, params object[] args);
 
         /// <summary>
-        /// 记录错误日志
+        /// Log error message
         /// </summary>
-        /// <param name="message">日志消息</param>
-        /// <param name="args">参数</param>
+        /// <param name="message">Log message</param>
+        /// <param name="args">Arguments</param>
         void LogError(string message, params object[] args);
 
         /// <summary>
-        /// 记录错误日志
+        /// Log error message with exception
         /// </summary>
-        /// <param name="exception">异常</param>
-        /// <param name="message">日志消息</param>
-        /// <param name="args">参数</param>
+        /// <param name="exception">Exception</param>
+        /// <param name="message">Log message</param>
+        /// <param name="args">Arguments</param>
         void LogError(Exception exception, string message, params object[] args);
     }
 } 

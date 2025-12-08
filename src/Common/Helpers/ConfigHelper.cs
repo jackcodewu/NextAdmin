@@ -16,7 +16,7 @@ namespace NextAdmin.Common.Helpers
 #if DEBUG
             appPath = appPath.Replace(@"bin\Debug\net9.0\", "");
 #endif
-            // 写入到 appsettings.json
+            // Write to appsettings.json
             var appSettingsPath = Path.Combine(
                 appPath,
                 "appsettings.json"
@@ -46,7 +46,7 @@ namespace NextAdmin.Common.Helpers
 #if DEBUG
             appPath = appPath.Replace(@"bin\Debug\net9.0\", "");
 #endif
-            // 写入到 appsettings.json
+            // Write to appsettings.json
             var appSettingsPath = Path.Combine(
                 appPath,
                 "appsettings.json"
@@ -65,7 +65,7 @@ namespace NextAdmin.Common.Helpers
 
         public static void UpdateSeedData(bool isSeed)
         {
-            // 写回 appsettings.json
+            // Write back to appsettings.json
             var appSettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
             if (File.Exists(appSettingsPath))
             {

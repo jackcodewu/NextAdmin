@@ -8,23 +8,23 @@ using System.Threading.Tasks;
 
 namespace NextAdmin.Application.DTOs
 {
-    [BsonIgnoreExtraElements] // 忽略数据库中存在但DTO中未定义的额外字段
+    [BsonIgnoreExtraElements] // Ignore extra fields that exist in the database but are not defined in the DTO
     public class RootDto
     {
         /// <summary>
-        /// 公司ID（字符串类型，兼容ObjectId）
+        /// Tenant ID (string type, compatible with ObjectId)
         /// </summary>
         [BsonRepresentation(BsonType.ObjectId)]
         public string? TenantId { get; set; }
 
 
         /// <summary>
-        /// 名称
+        /// Name
         /// </summary>
         public string? Name { get; set; }
 
         /// <summary>
-        /// 是否启用
+        /// Is enabled
         /// </summary>
         public bool IsEnabled { get;  set; } = true;
     }

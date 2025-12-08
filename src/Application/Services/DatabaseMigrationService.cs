@@ -6,51 +6,51 @@ using MongoDB.Driver;
 namespace NextAdmin.Application.Services
 {
     /// <summary>
-    /// 数据库迁移服务
+    /// Database Migration Service
     /// </summary>
     public class DatabaseMigrationService
     {
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
-        /// 构造函数
+        /// Constructor
         /// </summary>
-        /// <param name="serviceProvider">服务提供者</param>
+        /// <param name="serviceProvider">Service provider</param>
         public DatabaseMigrationService(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
         /// <summary>
-        /// 执行数据库迁移
+        /// Execute database migrations
         /// </summary>
-        /// <returns>迁移结果</returns>
+        /// <returns>Migration result</returns>
         public async Task<bool> ExecuteMigrationsAsync()
         {
             try
             {
-                LogHelper.Info("开始执行数据库迁移服务...");
+                LogHelper.Info("Starting database migration service...");
                 
                 using var scope = _serviceProvider.CreateScope();
                 var database = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
                 
-                // 直接调用迁移逻辑，避免跨项目依赖
+                // Directly call migration logic to avoid cross-project dependencies
                 await ExecuteMigrationsAsync(database);
                 
-                LogHelper.Info("数据库迁移服务执行完成");
+                LogHelper.Info("Database migration service completed");
                 return true;
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"执行数据库迁移服务时发生错误: {ex.Message}", ex);
+                LogHelper.Error($"Error occurred while executing database migration service: {ex.Message}", ex);
                 return false;
             }
         }
 
         /// <summary>
-        /// 检查是否需要执行迁移
+        /// Check if migration is needed
         /// </summary>
-        /// <returns>是否需要迁移</returns>
+        /// <returns>Whether migration is needed</returns>
         public async Task<bool> NeedsMigrationAsync()
         {
             try
@@ -58,28 +58,28 @@ namespace NextAdmin.Application.Services
                 using var scope = _serviceProvider.CreateScope();
                 var database = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
                 
-                // 检查设备集合中是否有文档缺少新字段
+                // Check if documents in device collection are missing new fields
                 var collection = database.GetCollection<MongoDB.Bson.BsonDocument>("devices");
                 
-                // 检查是否有文档缺少 TotalPowerConsumption 字段
+                // Check if any documents are missing the TotalPowerConsumption field
                 var filter1 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Not(
                     MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("TotalPowerConsumption")
                 );
                 var count1 = await collection.CountDocumentsAsync(filter1);
                 
-                // 检查是否有文档缺少 ParentDeviceId 字段
+                // Check if any documents are missing the ParentDeviceId field
                 var filter2 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Not(
                     MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("ParentDeviceId")
                 );
                 var count2 = await collection.CountDocumentsAsync(filter2);
                 
-                // 检查是否有文档缺少 IsMeter 字段
+                // Check if any documents are missing the IsMeter field
                 var filter3 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Not(
                     MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("IsMeter")
                 );
                 var count3 = await collection.CountDocumentsAsync(filter3);
                 
-                // 检查 RegisterInfos 中是否有缺少 ParameterType 字段的
+                // Check if any RegisterInfos are missing the ParameterType field
                 var filter4 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("RegisterInfos");
                 var documents = await collection.Find(filter4).ToListAsync();
                 int count4 = 0;
@@ -94,13 +94,13 @@ namespace NextAdmin.Application.Services
                             if (!registerInfo.AsBsonDocument.Contains("ParameterType"))
                             {
                                 count4++;
-                                break; // 只要有一个缺少就足够了
+                                break; // One missing is enough
                             }
                         }
                     }
                 }
 
-                // 检查设备数据集合中是否有文档缺少 ProjectId 字段
+                // Check if any documents in device data collection are missing ProjectId field
                 var deviceDataCollection = database.GetCollection<MongoDB.Bson.BsonDocument>("deviceDatas");
                 var filter5 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Not(
                     MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("ProjectId")
@@ -111,90 +111,90 @@ namespace NextAdmin.Application.Services
                 
                 if (needsMigration)
                 {
-                    LogHelper.Info($"检测到需要迁移的文档：缺少TotalPowerConsumption字段的文档 {count1} 个，缺少ParentDeviceId字段的文档 {count2} 个，缺少IsMeter字段的文档 {count3} 个，缺少ParameterType字段的RegisterInfos {count4} 个，缺少ProjectId字段的设备数据 {count5} 个");
+                    LogHelper.Info($"Documents requiring migration detected: {count1} documents missing TotalPowerConsumption field, {count2} documents missing ParentDeviceId field, {count3} documents missing IsMeter field, {count4} RegisterInfos missing ParameterType field, {count5} device data missing ProjectId field");
                 }
                 else
                 {
-                    LogHelper.Info("数据库迁移检查完成，无需执行迁移");
+                    LogHelper.Info("Database migration check completed, no migration needed");
                 }
                 
                 return needsMigration;
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"检查数据库迁移需求时发生错误: {ex.Message}", ex);
+                LogHelper.Error($"Error occurred while checking database migration requirements: {ex.Message}", ex);
                 return false;
             }
         }
 
         /// <summary>
-        /// 执行数据库迁移
+        /// Execute database migrations
         /// </summary>
-        /// <param name="database">MongoDB数据库实例</param>
+        /// <param name="database">MongoDB database instance</param>
         private static async Task ExecuteMigrationsAsync(IMongoDatabase database)
         {
             try
             {
                 if (database != null)
                 {
-                    LogHelper.Info("开始执行数据库迁移...");
+                    LogHelper.Info("Starting database migration...");
                     
                     var collection = database.GetCollection<MongoDB.Bson.BsonDocument>("devices");
                     
-                    // 查找所有没有 TotalPowerConsumption 字段的文档
+                    // Find all documents without TotalPowerConsumption field
                     var filter1 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Not(
                         MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("TotalPowerConsumption")
                     );
                     var update1 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update.Set("TotalPowerConsumption", 0.0);
                     var result1 = await collection.UpdateManyAsync(filter1, update1);
-                    LogHelper.Info($"迁移完成：为 {result1.ModifiedCount} 个设备文档添加了总耗电量字段，默认值为 0.0");
+                    LogHelper.Info($"Migration completed: Added TotalPowerConsumption field to {result1.ModifiedCount} device documents with default value 0.0");
 
-                    // 查找所有没有 ParentDeviceId 字段的文档
+                    // Find all documents without ParentDeviceId field
                     var filter2 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Not(
                         MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("ParentDeviceId")
                     );
                     var update2 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update.Set("ParentDeviceId", MongoDB.Bson.ObjectId.Empty);
                     var result2 = await collection.UpdateManyAsync(filter2, update2);
-                    LogHelper.Info($"迁移完成：为 {result2.ModifiedCount} 个设备文档添加了父设备ID字段，默认值为空");
+                    LogHelper.Info($"Migration completed: Added ParentDeviceId field to {result2.ModifiedCount} device documents with default value empty");
 
-                    // 查找所有没有 IsMeter 字段的文档
+                    // Find all documents without IsMeter field
                     var filter3 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Not(
                         MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("IsMeter")
                     );
                     var update3 = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update.Set("IsMeter", false);
                     var result3 = await collection.UpdateManyAsync(filter3, update3);
-                    LogHelper.Info($"迁移完成：为 {result3.ModifiedCount} 个设备文档添加了是否电表字段，默认值为 false");
+                    LogHelper.Info($"Migration completed: Added IsMeter field to {result3.ModifiedCount} device documents with default value false");
 
-                    // 更新设备集合中 RegisterInfos 的 ParameterType 字段
+                    // Update ParameterType field in RegisterInfos for device collection
                     await UpdateRegisterInfosParameterTypeAsync(collection);
                     
-                    // 更新设备类型集合中 RegisterInfos 的 ParameterType 字段
+                    // Update ParameterType field in RegisterInfos for device type collection
                     var deviceTypeCollection = database.GetCollection<MongoDB.Bson.BsonDocument>("deviceTypes");
                     await UpdateDeviceTypeRegisterInfosParameterTypeAsync(deviceTypeCollection);
                     
-                    // 为设备数据添加 ProjectId 字段
+                    // Add ProjectId field to device data
                     await AddProjectIdToDeviceDataAsync(database);
                     
-                    LogHelper.Info("数据库迁移执行完成");
+                    LogHelper.Info("Database migration execution completed");
                 }
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"执行数据库迁移时发生错误: {ex.Message}", ex);
+                LogHelper.Error($"Error occurred during database migration execution: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// 更新设备集合中 RegisterInfos 的 ParameterType 字段
+        /// Update ParameterType field in RegisterInfos for device collection
         /// </summary>
-        /// <param name="collection">设备集合</param>
+        /// <param name="collection">Device collection</param>
         private static async Task UpdateRegisterInfosParameterTypeAsync(IMongoCollection<MongoDB.Bson.BsonDocument> collection)
         {
             try
             {
-                LogHelper.Info("开始更新设备集合中 RegisterInfos 的 ParameterType 字段...");
+                LogHelper.Info("Starting to update ParameterType field in RegisterInfos for device collection...");
                 
-                // 查找所有包含 RegisterInfos 数组的文档
+                // Find all documents containing RegisterInfos array
                 var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("RegisterInfos");
                 var documents = await collection.Find(filter).ToListAsync();
                 
@@ -210,10 +210,10 @@ namespace NextAdmin.Application.Services
                         {
                             var registerInfo = registerInfosArray[i].AsBsonDocument;
                             
-                            // 检查是否缺少 ParameterType 字段
+                            // Check if ParameterType field is missing
                             if (!registerInfo.Contains("ParameterType"))
                             {
-                                // 根据寄存器(点位)名称或其他属性推断 ParameterType
+                                // Infer ParameterType based on register (point) name or other attributes
                                 var parameterType = InferParameterTypeFromRegisterInfo(registerInfo);
                                 registerInfo["ParameterType"] = parameterType;
                                 hasChanges = true;
@@ -230,25 +230,25 @@ namespace NextAdmin.Application.Services
                     }
                 }
                 
-                LogHelper.Info($"设备集合迁移完成：更新了 {updatedCount} 个设备文档的 RegisterInfos ParameterType 字段");
+                LogHelper.Info($"Device collection migration completed: Updated RegisterInfos ParameterType field for {updatedCount} device documents");
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"更新设备集合 RegisterInfos ParameterType 时发生错误: {ex.Message}", ex);
+                LogHelper.Error($"Error occurred while updating RegisterInfos ParameterType for device collection: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// 更新设备类型集合中 RegisterInfos 的 ParameterType 字段
+        /// Update ParameterType field in RegisterInfos for device type collection
         /// </summary>
-        /// <param name="collection">设备类型集合</param>
+        /// <param name="collection">Device type collection</param>
         private static async Task UpdateDeviceTypeRegisterInfosParameterTypeAsync(IMongoCollection<MongoDB.Bson.BsonDocument> collection)
         {
             try
             {
-                LogHelper.Info("开始更新设备类型集合中 RegisterInfos 的 ParameterType 字段...");
+                LogHelper.Info("Starting to update ParameterType field in RegisterInfos for device type collection...");
                 
-                // 查找所有包含 RegisterInfos 数组的文档
+                // Find all documents containing RegisterInfos array
                 var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("RegisterInfos");
                 var documents = await collection.Find(filter).ToListAsync();
                 
@@ -264,10 +264,10 @@ namespace NextAdmin.Application.Services
                         {
                             var registerInfo = registerInfosArray[i].AsBsonDocument;
                             
-                            // 检查是否缺少 ParameterType 字段
+                            // Check if ParameterType field is missing
                             if (!registerInfo.Contains("ParameterType"))
                             {
-                                // 根据寄存器(点位)名称或其他属性推断 ParameterType
+                                // Infer ParameterType based on register (point) name or other attributes
                                 var parameterType = InferParameterTypeFromRegisterInfo(registerInfo);
                                 registerInfo["ParameterType"] = parameterType;
                                 hasChanges = true;
@@ -283,146 +283,145 @@ namespace NextAdmin.Application.Services
                         }
                     }
                 }
-                
-                LogHelper.Info($"设备类型集合迁移完成：更新了 {updatedCount} 个设备类型文档的 RegisterInfos ParameterType 字段");
+                LogHelper.Info($"Device type collection migration completed: Updated RegisterInfos ParameterType field for {updatedCount} device type documents");
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"更新设备类型集合 RegisterInfos ParameterType 时发生错误: {ex.Message}", ex);
+                LogHelper.Error($"Error occurred while updating RegisterInfos ParameterType for device type collection: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// 根据寄存器(点位)信息推断 ParameterType
+        /// Infer ParameterType based on register (point) information
         /// </summary>
-        /// <param name="registerInfo">寄存器(点位)信息文档</param>
-        /// <returns>推断的 ParameterType</returns>
+        /// <param name="registerInfo">Register (point) information document</param>
+        /// <returns>Inferred ParameterType</returns>
         private static string InferParameterTypeFromRegisterInfo(MongoDB.Bson.BsonDocument registerInfo)
         {
             try
             {
-                // 获取寄存器(点位)名称
+                // Get register (point) name
                 string name = registerInfo.Contains("Name") && !registerInfo["Name"].IsBsonNull ? registerInfo["Name"].AsString : "";
                 string enName = registerInfo.Contains("EnName") && !registerInfo["EnName"].IsBsonNull ? registerInfo["EnName"].AsString : "";
                 string unit = registerInfo.Contains("Unit") && !registerInfo["Unit"].IsBsonNull ? registerInfo["Unit"].AsString : "";
                 
-                // 转换为小写进行比较
+                // Convert to lowercase for comparison
                 string nameLower = name.ToLower();
                 string enNameLower = enName.ToLower();
                 string unitLower = unit.ToLower();
                 
-                // 根据名称和单位推断参数类型
-                if (nameLower.Contains("电流") || enNameLower.Contains("current") || unitLower.Contains("a"))
+                // Infer parameter type based on name and unit
+                if (nameLower.Contains("current") || enNameLower.Contains("current") || unitLower.Contains("a"))
                 {
                     return "Current";
                 }
-                else if (nameLower.Contains("电压") || enNameLower.Contains("voltage") || unitLower.Contains("v"))
+                else if (nameLower.Contains("voltage") || enNameLower.Contains("voltage") || unitLower.Contains("v"))
                 {
                     return "Voltage";
                 }
-                else if (nameLower.Contains("功率") || enNameLower.Contains("power") || unitLower.Contains("w") || unitLower.Contains("kw"))
+                else if (nameLower.Contains("power") || enNameLower.Contains("power") || unitLower.Contains("w") || unitLower.Contains("kw"))
                 {
                     return "Power";
                 }
-                else if (nameLower.Contains("能耗") || nameLower.Contains("电能") || enNameLower.Contains("energy") || unitLower.Contains("kwh"))
+                else if (nameLower.Contains("energy") || nameLower.Contains("consumption") || enNameLower.Contains("energy") || unitLower.Contains("kwh"))
                 {
                     return "Energy";
                 }
-                else if (nameLower.Contains("功率因数") || enNameLower.Contains("powerfactor") || enNameLower.Contains("pf"))
+                else if (nameLower.Contains("powerfactor") || enNameLower.Contains("powerfactor") || enNameLower.Contains("pf"))
                 {
                     return "PowerFactor";
                 }
-                else if (nameLower.Contains("频率") || enNameLower.Contains("frequency") || unitLower.Contains("hz"))
+                else if (nameLower.Contains("frequency") || enNameLower.Contains("frequency") || unitLower.Contains("hz"))
                 {
                     return "Frequency";
                 }
-                else if (nameLower.Contains("温度") || enNameLower.Contains("temperature") || unitLower.Contains("°c") || unitLower.Contains("c"))
+                else if (nameLower.Contains("temperature") || enNameLower.Contains("temperature") || unitLower.Contains("°c") || unitLower.Contains("c"))
                 {
                     return "Temperature";
                 }
-                else if (nameLower.Contains("湿度") || enNameLower.Contains("humidity") || unitLower.Contains("%"))
+                else if (nameLower.Contains("humidity") || enNameLower.Contains("humidity") || unitLower.Contains("%"))
                 {
                     return "Humidity";
                 }
-                else if (nameLower.Contains("压力") || enNameLower.Contains("pressure") || unitLower.Contains("pa") || unitLower.Contains("bar"))
+                else if (nameLower.Contains("pressure") || enNameLower.Contains("pressure") || unitLower.Contains("pa") || unitLower.Contains("bar"))
                 {
                     return "Pressure";
                 }
-                else if (nameLower.Contains("流量") || enNameLower.Contains("flow") || unitLower.Contains("m³") || unitLower.Contains("l"))
+                else if (nameLower.Contains("flow") || enNameLower.Contains("flow") || unitLower.Contains("m³") || unitLower.Contains("l"))
                 {
                     return "Flow";
                 }
-                else if (nameLower.Contains("转速") || enNameLower.Contains("speed") || unitLower.Contains("rpm"))
+                else if (nameLower.Contains("speed") || enNameLower.Contains("speed") || unitLower.Contains("rpm"))
                 {
                     return "Speed";
                 }
-                else if (nameLower.Contains("振动") || enNameLower.Contains("vibration"))
+                else if (nameLower.Contains("vibration") || enNameLower.Contains("vibration"))
                 {
                     return "Vibration";
                 }
-                else if (nameLower.Contains("位移") || enNameLower.Contains("displacement"))
+                else if (nameLower.Contains("displacement") || enNameLower.Contains("displacement"))
                 {
                     return "Displacement";
                 }
-                else if (nameLower.Contains("扭矩") || enNameLower.Contains("torque"))
+                else if (nameLower.Contains("torque") || enNameLower.Contains("torque"))
                 {
                     return "Torque";
                 }
-                else if (nameLower.Contains("液位") || enNameLower.Contains("level"))
+                else if (nameLower.Contains("level") || enNameLower.Contains("level"))
                 {
                     return "Level";
                 }
-                else if (nameLower.Contains("开关") || nameLower.Contains("状态") || enNameLower.Contains("status") || enNameLower.Contains("switch"))
+                else if (nameLower.Contains("switch") || nameLower.Contains("status") || enNameLower.Contains("status") || enNameLower.Contains("switch"))
                 {
                     return "SwitchStatus";
                 }
-                else if (nameLower.Contains("运行") || enNameLower.Contains("running"))
+                else if (nameLower.Contains("running") || enNameLower.Contains("running"))
                 {
                     return "RunningStatus";
                 }
-                else if (nameLower.Contains("故障") || enNameLower.Contains("fault"))
+                else if (nameLower.Contains("fault") || enNameLower.Contains("fault"))
                 {
                     return "FaultStatus";
                 }
-                else if (nameLower.Contains("通信") || enNameLower.Contains("communication"))
+                else if (nameLower.Contains("communication") || enNameLower.Contains("communication"))
                 {
                     return "CommunicationStatus";
                 }
-                else if (nameLower.Contains("不平衡") || enNameLower.Contains("unbalance"))
+                else if (nameLower.Contains("unbalance") || enNameLower.Contains("unbalance"))
                 {
                     return "Unbalance";
                 }
                 
-                // 默认返回 Other
+                // Default return Other
                 return "Other";
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"推断 ParameterType 时发生错误: {ex.Message}", ex);
+                LogHelper.Error($"Error occurred while inferring ParameterType: {ex.Message}", ex);
                 return "Other";
             }
         }
 
         /// <summary>
-        /// 为设备数据添加 ProjectId 字段
+        /// Add ProjectId field to device data
         /// </summary>
-        /// <param name="database">MongoDB数据库实例</param>
+        /// <param name="database">MongoDB database instance</param>
         private static async Task AddProjectIdToDeviceDataAsync(IMongoDatabase database)
         {
             try
             {
-                LogHelper.Info("开始为设备数据添加 ProjectId 字段...");
+                LogHelper.Info("Starting to add ProjectId field to device data...");
                 
                 var deviceDataCollection = database.GetCollection<MongoDB.Bson.BsonDocument>("deviceDatas");
                 var deviceCollection = database.GetCollection<MongoDB.Bson.BsonDocument>("devices");
                 
-                // 查找所有没有 ProjectId 字段的设备数据文档
+                // Find all device data documents without ProjectId field
                 var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Not(
                     MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Exists("ProjectId")
                 );
                 
                 var deviceDataDocuments = await deviceDataCollection.Find(filter).ToListAsync();
-                LogHelper.Info($"找到 {deviceDataDocuments.Count} 个需要添加 ProjectId 字段的设备数据文档");
+                LogHelper.Info($"Found {deviceDataDocuments.Count} device data documents that need ProjectId field added");
                 
                 int updatedCount = 0;
                 int errorCount = 0;
@@ -431,28 +430,28 @@ namespace NextAdmin.Application.Services
                 {
                     try
                     {
-                        // 获取设备ID
+                        // Get device ID
                         if (!deviceDataDoc.Contains("DeviceId"))
                         {
-                            LogHelper.Warn($"设备数据文档缺少 DeviceId 字段，跳过: {deviceDataDoc["_id"]}");
+                            LogHelper.Warn($"Device data document missing DeviceId field, skipping: {deviceDataDoc["_id"]}");
                             errorCount++;
                             continue;
                         }
                         
                         var deviceId = deviceDataDoc["DeviceId"].AsObjectId;
                         
-                        // 根据设备ID查找对应的设备文档
+                        // Find corresponding device document by device ID
                         var deviceFilter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("_id", deviceId);
                         var deviceDoc = await deviceCollection.Find(deviceFilter).FirstOrDefaultAsync();
                         
                         if (deviceDoc == null)
                         {
-                            LogHelper.Warn($"未找到设备ID为 {deviceId} 的设备文档，跳过");
+                            LogHelper.Warn($"Device document with ID {deviceId} not found, skipping");
                             errorCount++;
                             continue;
                         }
                         
-                        // 获取设备的 ProjectId
+                        // Get device's ProjectId
                         ObjectId projectId = MongoDB.Bson.ObjectId.Empty;
                         if (deviceDoc.Contains("ProjectId"))
                         {
@@ -460,10 +459,10 @@ namespace NextAdmin.Application.Services
                         }
                         else
                         {
-                            LogHelper.Warn($"设备文档 {deviceId} 缺少 ProjectId 字段，使用默认值");
+                            LogHelper.Warn($"Device document {deviceId} missing ProjectId field, using default value");
                         }
                         
-                        // 更新设备数据文档
+                        // Update device data document
                         var updateFilter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("_id", deviceDataDoc["_id"]);
                         var update = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update.Set("ProjectId", projectId);
                         var result = await deviceDataCollection.UpdateOneAsync(updateFilter, update);
@@ -475,16 +474,16 @@ namespace NextAdmin.Application.Services
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.Error($"更新设备数据文档时发生错误: {ex.Message}", ex);
+                        LogHelper.Error($"Error occurred while updating device data document: {ex.Message}", ex);
                         errorCount++;
                     }
                 }
                 
-                LogHelper.Info($"设备数据 ProjectId 字段迁移完成：成功更新 {updatedCount} 个文档，错误 {errorCount} 个");
+                LogHelper.Info($"Device data ProjectId field migration completed: Successfully updated {updatedCount} documents, {errorCount} errors");
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"为设备数据添加 ProjectId 字段时发生错误: {ex.Message}", ex);
+                LogHelper.Error($"Error occurred while adding ProjectId field to device data: {ex.Message}", ex);
             }
         }
     }

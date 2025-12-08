@@ -9,14 +9,14 @@ using MongoDB.Driver;
 namespace NextAdmin.Application.DTOs.Menus
 {
     /// <summary>
-    /// 菜单查询DTO，支持分页和条件过滤
+    /// Menu query DTO, supports pagination and conditional filtering
     /// </summary>
     public class MenuQueryDto: QueryPageDto<MenuQueryDto, Menu>
     {
-    // 页码
+    // Page number
     // public int PageNumber { get; set; } = 1;
 
-    // 每页大小
+    // Page size
     // public int PageSize { get; set; } = 20;
 
         [BsonRepresentation(BsonType.ObjectId)]

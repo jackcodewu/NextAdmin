@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace NextAdmin.API.Authorization
 {
     /// <summary>
-    /// 处理 PermissionRequirement，检查用户是否拥有指定的权限声明。
+    /// Handles PermissionRequirement, checks if user has the specified permission claim.
     /// </summary>
     public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
     {
@@ -17,8 +17,8 @@ namespace NextAdmin.API.Authorization
             _logger = logger;
         }
 
-        // 定义存储在JWT中的权限声明的类型。
-        // 我们假设在用户登录并生成Token时，已将所有权限作为 "permission" 类型的 Claim 添加。
+        // Define the type of permission claim stored in JWT.
+        // We assume that when user logs in and generates Token, all permissions have been added as "permission" type Claims.
         public const string PermissionClaimType = "permission";
 
         protected override Task HandleRequirementAsync(
@@ -28,29 +28,29 @@ namespace NextAdmin.API.Authorization
             var user = context.User;
             var requiredPermission = requirement.Permission;
             
-            _logger.LogDebug("权限验证: 用户 {UserId} 需要权限 {Permission}", 
+            _logger.LogDebug("Permission verification: User {UserId} requires permission {Permission}", 
                 user.Identity?.Name ?? "Unknown", requiredPermission);
 
-            // 检查当前登录的用户是否拥有一个类型为 "permission" 且值与需求权限完全匹配的 Claim。
+            // Check if the currently logged-in user has a Claim of type "permission" with a value that exactly matches the required permission.
             if (context.User.HasClaim(PermissionClaimType, requiredPermission))
             {
-                _logger.LogDebug("权限验证成功: 用户 {UserId} 拥有权限 {Permission}", 
+                _logger.LogDebug("Permission verification successful: User {UserId} has permission {Permission}", 
                     user.Identity?.Name ?? "Unknown", requiredPermission);
-                // 如果找到匹配的权限声明，则授权成功。
+                // If matching permission claim is found, authorization succeeds.
                 context.Succeed(requirement);
             }
             else
             {
-                _logger.LogWarning("权限验证失败: 用户 {UserId} 缺少权限 {Permission}", 
+                _logger.LogWarning("Permission verification failed: User {UserId} lacks permission {Permission}", 
                     user.Identity?.Name ?? "Unknown", requiredPermission);
                 
-                // 输出用户的所有权限声明用于调试
+                // Output user's all permission claims for debugging
                 var userPermissions = context.User.FindAll(PermissionClaimType);
-                _logger.LogDebug("用户 {UserId} 拥有的权限: {Permissions}", 
+                _logger.LogDebug("User {UserId} has permissions: {Permissions}", 
                     user.Identity?.Name ?? "Unknown", 
                     string.Join(", ", userPermissions.Select(c => c.Value)));
             }
-            // 如果没有找到，则不调用 Succeed，授权将默认失败。
+            // If not found, do not call Succeed, authorization will fail by default.
 
             return Task.CompletedTask;
         }

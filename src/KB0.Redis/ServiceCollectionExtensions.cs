@@ -5,12 +5,12 @@ using Microsoft.Extensions.Options;
 namespace NextAdmin.Redis;
 
 /// <summary>
-/// 服务集合扩展方法
+/// Service collection extension methods
 /// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加Redis服务
+    /// Add Redis service
     /// </summary>
     public static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)
     {
@@ -35,7 +35,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加Redis服务
+    /// Add Redis service
     /// </summary>
     public static IServiceCollection AddRedis(this IServiceCollection services, Action<RedisOptions> configure)
     {

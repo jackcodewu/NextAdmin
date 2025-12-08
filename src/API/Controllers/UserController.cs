@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace NextAdmin.API.Controllers;
 
 /// <summary>
-/// 用户管理控制器
+/// User management controller
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -29,7 +29,7 @@ public class UserController : ControllerBase
     }
 
     /// <summary>
-    /// 获取用户列表
+    /// Get users list
     /// </summary>
     [Authorize(Policy = PermissionsDefine.UserPermissions.View)]
     [HttpGet]
@@ -40,11 +40,11 @@ public class UserController : ControllerBase
     {
         var result = await _userManagementService.GetUsersAsync(userQueryDto,pageNumber, pageSize);
 
-        return Ok(ApiResponse<PagedResultDto<UsersDto>>.SuccessResponse(result, "查询成功"));
+        return Ok(ApiResponse<PagedResultDto<UsersDto>>.SuccessResponse(result, "Query successful"));
     }
 
     /// <summary>
-    /// 根据ID获取用户
+    /// Get user by ID
     /// </summary>
     [Authorize(Policy = PermissionsDefine.UserPermissions.View)]
     [HttpGet("{id}")]
@@ -53,14 +53,14 @@ public class UserController : ControllerBase
         var user = await _userManagementService.GetUserByIdAsync(id);
         if (user == null)
         {
-            return NotFound("用户不存在");
+            return NotFound("User does not exist");
         }
 
-        return Ok(ApiResponse<UserDto>.SuccessResponse(user, "操作成功"));
+        return Ok(ApiResponse<UserDto>.SuccessResponse(user, "Operation successful"));
     }
 
     /// <summary>
-    /// 根据用户名获取用户
+    /// Get user by username
     /// </summary>
     [Authorize(Policy = PermissionsDefine.UserPermissions.View)]
     [HttpGet("by-username/{userName}")]
@@ -69,14 +69,14 @@ public class UserController : ControllerBase
         var user = await _userManagementService.GetUserByUserNameAsync(userName);
         if (user == null)
         {
-            return NotFound("用户不存在");
+            return NotFound("User does not exist");
         }
 
-        return Ok(ApiResponse<UserDto>.SuccessResponse(user, "操作成功"));
+        return Ok(ApiResponse<UserDto>.SuccessResponse(user, "Operation successful"));
     }
 
     /// <summary>
-    /// 获取所有value/lable数据
+    /// Get all value/label data
     /// </summary>
     /// <returns></returns>
     [HttpGet("options")]
@@ -85,11 +85,11 @@ public class UserController : ControllerBase
     {
         var all = await _userManagementService.GetOptionsAsync();
 
-        return Ok(ApiResponse<List<OptionDto>>.SuccessResponse(all, "查询成功"));
+        return Ok(ApiResponse<List<OptionDto>>.SuccessResponse(all, "Query successful"));
     }
 
     /// <summary>
-    /// 创建用户
+    /// Create user
     /// </summary>
     [Authorize(Policy = PermissionsDefine.UserPermissions.Create)]
     [HttpPost]
@@ -103,7 +103,7 @@ public class UserController : ControllerBase
         var result = await _userManagementService.CreateUserAsync(createUserDto);
         if (result.IsSuccess)
         {    
-            return Ok(ApiResponse<UserDto>.SuccessResponse(result.Data, "操作成功"));
+            return Ok(ApiResponse<UserDto>.SuccessResponse(result.Data, "Operation successful"));
         }
 
 
@@ -112,7 +112,7 @@ public class UserController : ControllerBase
     }
 
     /// <summary>
-    /// 更新用户
+    /// Update user
     /// </summary>
     [Authorize(Policy = PermissionsDefine.UserPermissions.Edit)]
     [HttpPut("{id}")]
@@ -127,14 +127,14 @@ public class UserController : ControllerBase
         if (result.IsSuccess)
         {
 
-            return Ok(ApiResponse<bool>.SuccessResponse(true, "操作成功"));
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Operation successful"));
         }
 
         return BadRequest(result.ErrorMessage);
     }
 
     /// <summary>
-    /// 删除用户
+    /// Delete user
     /// </summary>
     [Authorize(Policy = PermissionsDefine.UserPermissions.Delete)]
     [HttpDelete("{id}")]
@@ -144,14 +144,14 @@ public class UserController : ControllerBase
         if (result.IsSuccess)
         {
 
-            return Ok(ApiResponse<bool>.SuccessResponse(true, "操作成功"));
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Operation successful"));
         }
 
         return BadRequest(result.ErrorMessage);
     }
 
     /// <summary>
-    /// 修改密码
+    /// Change password
     /// </summary>
     [HttpPost("{id}/change-password")]
     [Authorize(Policy = PermissionsDefine.UserPermissions.Edit)]
@@ -166,7 +166,7 @@ public class UserController : ControllerBase
         if (result.IsSuccess)
         {
 
-            return Ok(ApiResponse<bool>.SuccessResponse(true, "密码修改成功"));
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Password changed successfully"));
         }
 
 
@@ -174,7 +174,7 @@ public class UserController : ControllerBase
     }
 
     /// <summary>
-    /// 重置密码
+    /// Reset password
     /// </summary>
     [HttpPost("{id}/reset-password")]
     [Authorize(Policy = PermissionsDefine.UserPermissions.Edit)]
@@ -184,7 +184,7 @@ public class UserController : ControllerBase
         if (result.IsSuccess)
         {
 
-            return Ok(ApiResponse<object>.SuccessResponse(new { success = true, newPassword = result.Data }, "密码重置成功"));
+            return Ok(ApiResponse<object>.SuccessResponse(new { success = true, newPassword = result.Data }, "Password reset successfully"));
         }
 
 
@@ -192,7 +192,7 @@ public class UserController : ControllerBase
     }
 
     /// <summary>
-    /// 激活/停用用户
+    /// Activate/deactivate user
     /// </summary>
     [HttpPost("{id}/toggle-status")]
     [Authorize(Roles = "Admin")]
@@ -201,14 +201,14 @@ public class UserController : ControllerBase
         var result = await _userManagementService.ToggleUserStatusAsync(id);
         if (result.IsSuccess)
         {
-            return Ok(ApiResponse<bool>.SuccessResponse(true, "操作成功"));
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Operation successful"));
         }
 
         return BadRequest(result.ErrorMessage);
     }
 
     /// <summary>
-    /// 为用户分配角色
+    /// Assign roles to user
     /// </summary>
     [HttpPost("{id}/assign-roles")]
     [Authorize(Roles = "Admin")]
@@ -217,14 +217,14 @@ public class UserController : ControllerBase
         var result = await _userManagementService.AssignRolesToUserAsync(id, roleIds);
         if (result.IsSuccess)
         {
-            return Ok(ApiResponse<bool>.SuccessResponse(true, "操作成功"));
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Operation successful"));
         }
 
         return BadRequest(result.ErrorMessage);
     }
 
     /// <summary>
-    /// 获取用户的角色
+    /// Get user's roles
     /// </summary>
     [HttpGet("{id}/roles")]
     [Authorize(Roles = "Admin")]
@@ -232,7 +232,7 @@ public class UserController : ControllerBase
     {
         var roles = await _userManagementService.GetUserRolesAsync(id);
 
-        return Ok(ApiResponse<List<RolesDto>>.SuccessResponse(roles, "操作成功"));
+        return Ok(ApiResponse<List<RolesDto>>.SuccessResponse(roles, "Operation successful"));
     }
 
 

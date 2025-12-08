@@ -18,19 +18,19 @@ namespace NextAdmin.Infrastructure.Extensions
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // 注册MongoDB BSON类映射
+            // Register MongoDB BSON class mappings
             RegisterBsonClassMaps();
 
-            // 配置设置（.NET 9 风格）
+            // Configure settings (.NET 9 style)
             services.AddOptions<MongoDbSettings>()
                 .BindConfiguration(MongoDbSettings.SectionName)
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
-            // 注册 MongoDB 客户端，使用 IOptions<MongoDbSettings>
+            // Register MongoDB client, using IOptions<MongoDbSettings>
             services.AddSingleton<IMongoClient>(sp =>
             {
-                // 从配置获取 MongoDB 设置
+                // Get MongoDB settings from configuration
                 var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
                 if (string.IsNullOrWhiteSpace(settings.ConnectionString))
                     throw new ArgumentNullException(nameof(settings.ConnectionString), "MongoDB ConnectionString is not configured.");
@@ -46,14 +46,14 @@ namespace NextAdmin.Infrastructure.Extensions
                 return client.GetDatabase(settings.DatabaseName);
             });
 
-            // 🚀 自动注册所有仓储（扫描继承 AggregateRoot 的实体）
-            // 方式1：标准注册（需要手动创建仓储类）
+            // 🚀 Auto-register all repositories (scan entities inheriting AggregateRoot)
+            // Method 1: Standard registration (requires manually creating repository classes)
             // services.AddAutoRepositories();
             
-            // 方式2：动态生成注册（运行时自动生成缺失的仓储类）
+            // Method 2: Dynamic generation registration (automatically generates missing repository classes at runtime)
             services.AddAutoRepositoriesWithDynamicGeneration();
             
-            // 打印已注册的仓储列表（开发环境可选）
+            // Print registered repository list (optional for development environment)
             #if DEBUG
             services.PrintRegisteredRepositories();
             #endif
@@ -62,35 +62,35 @@ namespace NextAdmin.Infrastructure.Extensions
         }
 
         /// <summary>
-        /// 注册所有仓储服务（已废弃，使用自动注册）
+        /// Register all repository services (obsolete, use auto-registration)
         /// </summary>
-        [Obsolete("请使用 AddAutoRepositories() 自动注册仓储")]
+        [Obsolete("Please use AddAutoRepositories() for auto-registration")]
         private static void RegisterRepositories(IServiceCollection services)
         {
-            // ⚠️ 此方法已废弃，现在使用自动注册机制
-            // 自动注册会扫描所有继承 AggregateRoot 的实体类
-            // 并自动注册对应的 I{Entity}Repository 和 {Entity}Repository
+            // ⚠️ This method is obsolete, now use auto-registration mechanism
+            // Auto-registration scans all entity classes inheriting AggregateRoot
+            // and automatically registers corresponding I{Entity}Repository and {Entity}Repository
             
-            // 如需手动覆盖某个仓储的注册，请使用：
+            // To manually override the registration of a specific repository, use:
             // services.AddRepository<IMenuRepository, MenuRepository>();
             
-            // 通用仓储会自动注册，无需手动添加
+            // Generic repository is automatically registered, no need to add manually
             // services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
         }
 
         /// <summary>
-        /// 注册MongoDB BSON类映射
+        /// Register MongoDB BSON class mappings
         /// </summary>
         private static void RegisterBsonClassMaps()
         {
-            // 注册全局约定：忽略所有类的额外元素
+            // Register global convention: Ignore extra elements for all classes
             var conventionPack = new ConventionPack
             {
                 new IgnoreExtraElementsConvention(true)
             };
             ConventionRegistry.Register("IgnoreExtraElements", conventionPack, type => true);
 
-            // 注册BaseEntity类映射
+            // Register BaseEntity class mapping
             if (!BsonClassMap.IsClassMapRegistered(typeof(BaseEntity)))
             {
                 BsonClassMap.RegisterClassMap<BaseEntity>(cm =>
@@ -100,7 +100,7 @@ namespace NextAdmin.Infrastructure.Extensions
                 });
             }
 
-            // 注册AggregateRoot类映射
+            // Register AggregateRoot class mapping
             if (!BsonClassMap.IsClassMapRegistered(typeof(AggregateRoot)))
             {
                 BsonClassMap.RegisterClassMap<AggregateRoot>(cm =>
@@ -110,14 +110,14 @@ namespace NextAdmin.Infrastructure.Extensions
                 });
             }
 
-            // 注意：VJSF 和其他业务特定的类映射已被移除
-            // 如需添加业务特定的 BSON 类映射，请在此处添加
+            // Note: VJSF and other business-specific class mappings have been removed
+            // To add business-specific BSON class mappings, please add them here
         }
 
         /// <summary>
-        /// 执行数据库迁移
+        /// Execute database migrations
         /// </summary>
-        /// <param name="database">MongoDB数据库实例</param>
+        /// <param name="database">MongoDB database instance</param>
         public static async Task ExecuteMigrationsAsync(IMongoDatabase database)
         {
             await DatabaseMigrationManager.ExecuteMigrationsAsync(database);

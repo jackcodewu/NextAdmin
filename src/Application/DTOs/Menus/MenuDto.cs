@@ -6,7 +6,7 @@ using NextAdmin.Application.DTOs.Bases;
 namespace NextAdmin.Application.DTOs.Menus
 {
     /// <summary>
-    /// 菜单DTO
+    /// Menu DTO
     /// </summary>
     public class MenuDto : BaseDto
     {
@@ -26,7 +26,7 @@ namespace NextAdmin.Application.DTOs.Menus
         public string? Redirect { get; set; }
 
         /// <summary>
-        /// 子菜单
+        /// Child menus
         /// </summary>
         public List<MenuDto> Children { get; set; } = new();
     }

@@ -6,7 +6,7 @@ using MediatR;
 namespace NextAdmin.Core.Domain.Entities
 {
     /// <summary>
-    /// 聚合根基类
+    /// Aggregate root base class
     /// </summary>
     public abstract class AggregateRoot : BaseEntity
     {
@@ -22,7 +22,7 @@ namespace NextAdmin.Core.Domain.Entities
         }
 
         /// <summary>
-        /// 领域事件集合
+        /// Domain events collection
         /// </summary>
         public IReadOnlyCollection<INotification> DomainEvents => _domainEvents.AsReadOnly();
 
@@ -30,35 +30,35 @@ namespace NextAdmin.Core.Domain.Entities
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// 是否启用
+        /// Whether enabled
         /// </summary>
         public bool IsEnabled { get; protected set; } = true;
 
         /// <summary>
-        /// 是否已删除
+        /// Whether deleted
         /// </summary>
         public bool IsDeleted { get; protected set; }
 
         /// <summary>
-        /// 添加领域事件
+        /// Add domain event
         /// </summary>
-        /// <param name="domainEvent">领域事件</param>
+        /// <param name="domainEvent">Domain event</param>
         protected void AddDomainEvent(INotification domainEvent)
         {
             _domainEvents.Add(domainEvent);
         }
 
         /// <summary>
-        /// 移除领域事件
+        /// Remove domain event
         /// </summary>
-        /// <param name="domainEvent">领域事件</param>
+        /// <param name="domainEvent">Domain event</param>
         protected void RemoveDomainEvent(INotification domainEvent)
         {
             _domainEvents.Remove(domainEvent);
         }
 
         /// <summary>
-        /// 清除所有领域事件
+        /// Clear all domain events
         /// </summary>
         public void ClearDomainEvents()
         {

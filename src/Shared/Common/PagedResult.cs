@@ -1,52 +1,52 @@
 namespace NextAdmin.Shared.Common;
 
 /// <summary>
-/// 分页响应结果
+/// Paged response result
 /// </summary>
 public class PagedResult<T>
 {
     /// <summary>
-    /// 数据项
+    /// Data items
     /// </summary>
     public List<T> Items { get; set; } = new();
 
     /// <summary>
-    /// 总记录数
+    /// Total record count
     /// </summary>
     public int TotalCount { get; set; }
 
     /// <summary>
-    /// 当前页码
+    /// Current page number
     /// </summary>
     public int PageNumber { get; set; }
 
     /// <summary>
-    /// 每页大小
+    /// Page size
     /// </summary>
     public int PageSize { get; set; }
 
     /// <summary>
-    /// 总页数
+    /// Total pages
     /// </summary>
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
 
     /// <summary>
-    /// 是否有上一页
+    /// Whether has previous page
     /// </summary>
     public bool HasPreviousPage => PageNumber > 1;
 
     /// <summary>
-    /// 是否有下一页
+    /// Whether has next page
     /// </summary>
     public bool HasNextPage => PageNumber < TotalPages;
 
     /// <summary>
-    /// 起始记录索引
+    /// Start record index
     /// </summary>
     public int StartIndex => (PageNumber - 1) * PageSize + 1;
 
     /// <summary>
-    /// 结束记录索引
+    /// End record index
     /// </summary>
     public int EndIndex => Math.Min(StartIndex + PageSize - 1, TotalCount);
 } 

@@ -3,7 +3,7 @@ using NextAdmin.Application.DTOs;
 using NextAdmin.Application.DTOs.Auths;
 using NextAdmin.Application.DTOs.Bases;
 using NextAdmin.Application.DTOs.Bases.QueryPages;
-// using NextAdmin.Application.DTOs.Companies; // 已移除 Tenant 相关 DTO
+// using NextAdmin.Application.DTOs.Companies; // Tenant related DTO removed
 using NextAdmin.Application.DTOs.Roles;
 using NextAdmin.Application.DTOs.Users;
 using NextAdmin.Application.Interfaces;
@@ -19,7 +19,7 @@ using System.ComponentModel.Design;
 namespace NextAdmin.Application.Services;
 
 /// <summary>
-/// 用户管理服务实现
+/// User management service implementation
 /// </summary>
 public class UserManagementService : IUserManagementService
 {
@@ -27,12 +27,12 @@ public class UserManagementService : IUserManagementService
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    // private readonly ITenantRepository _TenantRepository; // 已移除 Tenant 相关功能
+    // private readonly ITenantRepository _TenantRepository; // Tenant related functionality removed
 
     public UserManagementService(
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
-        // ITenantRepository TenantRepository, // 已移除 Tenant 相关功能
+        // ITenantRepository TenantRepository, // Tenant related functionality removed
         IHttpContextAccessor httpContextAccessor,
         IMapper mapper)
     {
@@ -40,7 +40,7 @@ public class UserManagementService : IUserManagementService
         _roleManager = roleManager;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
-        // _TenantRepository = TenantRepository; // 已移除 Tenant 相关功能
+        // _TenantRepository = TenantRepository; // Tenant related functionality removed
     }
 
     public async Task<List<OptionDto>> GetOptionsAsync()
@@ -49,7 +49,7 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 获取用户列表
+    /// Get user list
     /// </summary>
     public async Task<PagedResultDto<UsersDto>> GetUsersAsync(UserQueryDto userQueryDto, int pageNumber = 1, int pageSize = 10)
     {
@@ -75,7 +75,7 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 根据ID获取用户
+    /// Get user by ID
     /// </summary>
     public async Task<UserDto?> GetUserByIdAsync(string id)
     {
@@ -87,7 +87,7 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 根据用户名获取用户
+    /// Get user by username
     /// </summary>
     public async Task<UserDto?> GetUserByUserNameAsync(string userName)
     {
@@ -99,30 +99,30 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 创建用户
+    /// Create user
     /// </summary>
     public async Task<Result<UserDto>> CreateUserAsync(CreateUserDto createUserDto)
     {
-        // 检查用户名是否已存在
+        // Check if username already exists
         var existingUser = await _userManager.FindByNameAsync(createUserDto.UserName);
         if (existingUser != null)
         {
-            return Result<UserDto>.Failure("用户名已存在");
+            return Result<UserDto>.Failure("Username already exists");
         }
 
-        //// 检查邮箱是否已存在
+        //// Check if email already exists
         //existingUser = await _userManager.FindByEmailAsync(createUserDto.Email);
         //if (existingUser != null)
         //{
-        //    return Result<UserDto>.Failure("邮箱已存在");
+        //    return Result<UserDto>.Failure("Email already exists");
         //}
 
-        // 已移除 Tenant 相关逻辑
+        // Tenant related logic removed
         // var TenantId = GetTenantId();
         // var Tenant = await _TenantRepository.GetByIdAsync(TenantId);
         // if (Tenant == null)
         // {
-        //     return Result<UserDto>.Failure("公司不存在");
+        //     return Result<UserDto>.Failure("Company does not exist");
         // }
 
         var user = new ApplicationUser
@@ -135,8 +135,8 @@ public class UserManagementService : IUserManagementService
             //Department = createUserDto.Department,
             //Position = createUserDto.Position,
             //IsActive = createUserDto.IsActive,
-            // TenantId = TenantId, // 已移除 Tenant 相关属性
-            // TenantName = Tenant.Name, // 已移除 Tenant 相关属性
+            // TenantId = TenantId, // Tenant related property removed
+            // TenantName = Tenant.Name, // Tenant related property removed
             CreatedAt = DateTime.UtcNow
         };
 
@@ -146,7 +146,7 @@ public class UserManagementService : IUserManagementService
             return Result<UserDto>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-        // 分配角色
+        // Assign roles
         if (createUserDto.RoleIds.Any())
         {
             var roles = new List<string>();
@@ -169,21 +169,21 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 更新用户
+    /// Update user
     /// </summary>
     public async Task<Result<UserDto>> UpdateUserAsync(string id, UpdateUserDto updateUserDto)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
         {
-            return Result<UserDto>.Failure("用户不存在");
+            return Result<UserDto>.Failure("User does not exist");
         }
 
-        //// 检查邮箱是否被其他用户使用
+        //// Check if email is used by other users
         //var existingUser = await _userManager.FindByEmailAsync(updateUserDto.Email);
         //if (existingUser != null && existingUser.Id != user.Id)
         //{
-        //    return Result<UserDto>.Failure("邮箱已被其他用户使用");
+        //    return Result<UserDto>.Failure("Email is already used by another user");
         //}
 
         //user.Email = updateUserDto.Email;
@@ -200,7 +200,7 @@ public class UserManagementService : IUserManagementService
             return Result<UserDto>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-        // 更新角色
+        // Update roles
         var currentRoles = await _userManager.GetRolesAsync(user);
         await _userManager.RemoveFromRolesAsync(user, currentRoles);
 
@@ -226,14 +226,14 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 删除用户
+    /// Delete user
     /// </summary>
     public async Task<Result> DeleteUserAsync(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
         {
-            return Result.Failure("用户不存在");
+            return Result.Failure("User does not exist");
         }
 
         var result = await _userManager.DeleteAsync(user);
@@ -246,14 +246,14 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 修改密码
+    /// Change password
     /// </summary>
     public async Task<Result> ChangePasswordAsync(string userId, ChangePasswordDto changePasswordDto)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            return Result.Failure("用户不存在");
+            return Result.Failure("User does not exist");
         }
 
         var result = await _userManager.ChangePasswordAsync(user, changePasswordDto.CurrentPassword, changePasswordDto.NewPassword);
@@ -266,14 +266,14 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 重置密码
+    /// Reset password
     /// </summary>
     public async Task<Result<string>> ResetPasswordAsync(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            return Result<string>.Failure("用户不存在");
+            return Result<string>.Failure("User does not exist");
         }
 
         var newPassword = GenerateRandomPassword();
@@ -289,14 +289,14 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 激活/停用用户
+    /// Activate/Deactivate user
     /// </summary>
     public async Task<Result> ToggleUserStatusAsync(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            return Result.Failure("用户不存在");
+            return Result.Failure("User does not exist");
         }
 
         user.IsActive = !user.IsActive;
@@ -311,21 +311,21 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 为用户分配角色
+    /// Assign roles to user
     /// </summary>
     public async Task<Result> AssignRolesToUserAsync(string userId, List<string> roleIds)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            return Result.Failure("用户不存在");
+            return Result.Failure("User does not exist");
         }
 
-        // 移除现有角色
+        // Remove current roles
         var currentRoles = await _userManager.GetRolesAsync(user);
         await _userManager.RemoveFromRolesAsync(user, currentRoles);
 
-        // 添加新角色
+        // Add new roles
         if (roleIds.Any())
         {
             var roles = new List<string>();
@@ -351,7 +351,7 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 获取用户的角色
+    /// Get user's roles
     /// </summary>
     public async Task<List<RolesDto>> GetUserRolesAsync(string userId)
     {
@@ -371,7 +371,7 @@ public class UserManagementService : IUserManagementService
                     Id = role.Id.ToString(),
                     Name = role.Name!,
                     Description = role.Description,
-                    UserCount = 0 // 这里可以根据需要计算用户数量
+                    UserCount = 0 // User count can be calculated here if needed
                 });
             }
         }
@@ -383,14 +383,14 @@ public class UserManagementService : IUserManagementService
     public ObjectId GetTenantId(string? inputTenantId = null)
     {
 
-        // 超级管理员：允许指定TenantId，否则返回Empty
+        // Super admin: Allow specifying TenantId, otherwise return Empty
         if (
             !string.IsNullOrEmpty(inputTenantId)
             && ObjectId.TryParse(inputTenantId, out var cid)
         )
             return cid;
 
-        // 普通用户：始终用自己
+        // Regular user: Always use their own
         ObjectId.TryParse(
             _httpContextAccessor.HttpContext?.User?.FindFirst("TenantId")?.Value,
             out ObjectId TenantId
@@ -407,7 +407,7 @@ public class UserManagementService : IUserManagementService
         return _httpContextAccessor.HttpContext?.User?.FindFirst("TenantName")?.Value ?? string.Empty;
     }
 
-    // 已移除 Tenant 相关功能
+    // Tenant related functionality removed
     // public async Task<Result<TenantDto>> GetTenantAsync()
     // {
     //     ObjectId.TryParse(
@@ -417,7 +417,7 @@ public class UserManagementService : IUserManagementService
     //     var Tenant = await _TenantRepository.GetByIdAsync(TenantId);
     //     if (Tenant == null)
     //     {
-    //         return Result<TenantDto>.Failure("无法查询到当前用户所属公司，请确认是否登录");
+    //         return Result<TenantDto>.Failure("Unable to query the current user's company, please confirm if logged in");
     //     }
     //     var TenantDto = _mapper.Map<TenantDto>(Tenant);
     //     TenantDto.Permissions.Clear();
@@ -426,7 +426,7 @@ public class UserManagementService : IUserManagementService
     // }
 
     /// <summary>
-    /// 映射到用户DTO
+    /// Map to user DTO
     /// </summary>
     private static UserDto MapToUserDto(ApplicationUser user, IList<string> roles)
     {
@@ -447,7 +447,7 @@ public class UserManagementService : IUserManagementService
     }
 
     /// <summary>
-    /// 生成随机密码
+    /// Generate random password
     /// </summary>
     private static string GenerateRandomPassword()
     {

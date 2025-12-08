@@ -32,7 +32,7 @@ namespace NextAdmin.API.Middleware
             var response = new
             {
                 Code = "500",
-                Message = "服务器内部错误",
+                Message = "Server internal error",
                 Data = (object?)null
             };
 
@@ -43,7 +43,7 @@ namespace NextAdmin.API.Middleware
                     response = new
                     {
                         Code = "400",
-                        Message = "请求参数错误",
+                        Message = "Request parameter error",
                         Data = (object?)null
                     };
                     break;
@@ -52,7 +52,7 @@ namespace NextAdmin.API.Middleware
                     response = new
                     {
                         Code = "401",
-                        Message = "未授权访问",
+                        Message = "Unauthorized access",
                         Data = (object?)null
                     };
                     break;
@@ -61,7 +61,7 @@ namespace NextAdmin.API.Middleware
                     response = new
                     {
                         Code = "501",
-                        Message = "功能未实现",
+                        Message = "Feature not implemented",
                         Data = (object?)null
                     };
                     break;

@@ -13,17 +13,17 @@ using NextAdmin.Application.Interfaces;
 namespace NextAdmin.Application.Services
 {
     /// <summary>
-    /// 滑动拼图验证码服务实现
+    /// Sliding puzzle captcha service implementation
     /// </summary>
     public class CaptchaService : ICaptchaService
     {
         private readonly IRedisService _redisService;
-        private const int CaptchaWidth = 330; // 统一验证码背景宽度
-        private const int CaptchaHeight = 166; // 统一验证码背景高度
-        private const int SliderWidth = 40; // 滑块宽度
-        private const int SliderHeight = 40; // 滑块高度
-        private const int Tolerance = 3; // 允许误差像素
-        private const int ExpireSeconds = 180; // 验证码有效期（秒）
+        private const int CaptchaWidth = 330; // Unified captcha background width
+        private const int CaptchaHeight = 166; // Unified captcha background height
+        private const int SliderWidth = 40; // Slider width
+        private const int SliderHeight = 40; // Slider height
+        private const int Tolerance = 3; // Allowed pixel tolerance
+        private const int ExpireSeconds = 180; // Captcha validity period (seconds)
 
         public CaptchaService(IRedisService redisService)
         {
@@ -31,36 +31,36 @@ namespace NextAdmin.Application.Services
         }
 
         /// <summary>
-        /// 生成滑动拼图验证码
+        /// Generate sliding puzzle captcha
         /// </summary>
         public async Task<CaptchaGenerateResultDto> GenerateCaptchaAsync()
         {
-            // 1. 随机选取一张本地图片作为背景
+            // 1. Randomly select a local image as background
             var imagesDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Images");
             if (!Directory.Exists(imagesDir))
-                throw new Exception($"验证码图片目录不存在: {imagesDir}");
+                throw new Exception($"Captcha image directory does not exist: {imagesDir}");
             var imageFiles = Directory.GetFiles(imagesDir, "*.jpg").Concat(Directory.GetFiles(imagesDir, "*.png")).ToArray();
             if (imageFiles.Length == 0)
-                throw new Exception($"验证码图片目录为空: {imagesDir}");
+                throw new Exception($"Captcha image directory is empty: {imagesDir}");
             var random = new Random();
             var imagePath = imageFiles[random.Next(imageFiles.Length)];
 
             using var srcImg = Image.Load<Rgba32>(imagePath);
-            // 统一缩放为330x166
+            // Uniformly resize to 330x166
             srcImg.Mutate(x => x.Resize(CaptchaWidth, CaptchaHeight));
 
             int bgWidth = CaptchaWidth;
             int bgHeight = CaptchaHeight;
-            int y = RandomNumberGenerator.GetInt32(20, bgHeight - SliderHeight - 20); // 缺口目标Y
-            int x = RandomNumberGenerator.GetInt32(60, bgWidth - SliderWidth - 20);   // 缺口目标X
-            int sliderStartX = RandomNumberGenerator.GetInt32(0, 31); // 滑块初始X
+            int y = RandomNumberGenerator.GetInt32(20, bgHeight - SliderHeight - 20); // Gap target Y
+            int x = RandomNumberGenerator.GetInt32(60, bgWidth - SliderWidth - 20);   // Gap target X
+            int sliderStartX = RandomNumberGenerator.GetInt32(0, 31); // Slider initial X
 
             var rect = new Rectangle(x, y, SliderWidth, SliderHeight);
             using var bg = srcImg.Clone();
             bg.Mutate(ctx => ctx.Fill(Color.FromRgba(255,255,255,128), rect));
             using var slider = srcImg.Clone(ctx => ctx.Crop(rect));
 
-            // 4. 转Base64
+            // 4. Convert to Base64
             string bgBase64, sliderBase64;
             using (var ms = new MemoryStream())
             {
@@ -73,7 +73,7 @@ namespace NextAdmin.Application.Services
                 sliderBase64 = Convert.ToBase64String(ms.ToArray());
             }
 
-            // 5. 生成Token，存入Redis（只存目标x）
+            // 5. Generate Token and store in Redis (only store target x)
             var token = Guid.NewGuid().ToString("N");
             await _redisService.SetStringAsync($"captcha:{token}", x.ToString(), TimeSpan.FromSeconds(ExpireSeconds));
 
@@ -84,7 +84,7 @@ namespace NextAdmin.Application.Services
                 SliderImageBase64 = sliderBase64,
                 Y = y,
                 X = x,
-                SliderStartX = sliderStartX, // 新增字段
+                SliderStartX = sliderStartX, // New field
                 SliderWidth = SliderWidth,
                 SliderHeight = SliderHeight,
                 Width = bgWidth,
@@ -93,7 +93,7 @@ namespace NextAdmin.Application.Services
         }
 
         /// <summary>
-        /// 校验滑动拼图验证码
+        /// Verify sliding puzzle captcha
         /// </summary>
         public async Task<bool> VerifyCaptchaAsync(CaptchaVerifyDto dto, bool isDelete = false)
         {
@@ -104,12 +104,12 @@ namespace NextAdmin.Application.Services
             if (!int.TryParse(xStr, out int correctX)) return false;
 
             if (isDelete)
-                await _redisService.DeleteAsync(redisKey); // 防重放
+                await _redisService.DeleteAsync(redisKey); // Prevent replay attack
 
-            // 校验误差
+            // Verify tolerance
             if (Math.Abs(dto.X - correctX) <= Tolerance)
             {
-                // 可选：校验轨迹合理性
+                // Optional: Verify trajectory validity
                 return true;
             }
             return false;

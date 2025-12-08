@@ -24,7 +24,7 @@ namespace NextAdmin.API.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            // 只缓存GET请求
+            // Only cache GET requests
             if (context.Request.Method != "GET")
             {
                 await _next(context);
@@ -34,7 +34,7 @@ namespace NextAdmin.API.Middleware
             var cacheKey = GenerateCacheKey(context);
             if (_cache.TryGetValue(cacheKey, out var cachedResponse))
             {
-                LogHelper.Info("从缓存返回响应: {Path}", context.Request.Path);
+                LogHelper.Info("Returning response from cache: {Path}", context.Request.Path);
                 await WriteCachedResponse(context, cachedResponse);
                 return;
             }
@@ -51,7 +51,7 @@ namespace NextAdmin.API.Middleware
                 var cacheDuration = GetCacheDuration(context);
                 
                 _cache.Set(cacheKey, response, TimeSpan.FromSeconds(cacheDuration));
-                LogHelper.Info($"缓存响应: {context.Request.Path} 有效期 {cacheDuration}秒");
+                LogHelper.Info($"Caching response: {context.Request.Path} valid for {cacheDuration} seconds");
             }
 
             await responseBody.CopyToAsync(originalBodyStream);

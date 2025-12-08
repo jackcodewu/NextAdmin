@@ -6,8 +6,8 @@ using System.Text.Json.Serialization;
 namespace NextAdmin.API.Extensions.Json
 {
     /// <summary>
-    /// 将 DateTime 统一序列化为 "yyyy-MM-dd HH:mm:ss"，反序列化支持常见格式。
-    /// UTC 输入将转换为本地时间再输出。
+    /// Uniformly serialize DateTime to "yyyy-MM-dd HH:mm:ss", deserialization supports common formats.
+    /// UTC input will be converted to local time before output.
     /// </summary>
     public sealed class DateTimeConverter : JsonConverter<DateTime>
     {
@@ -24,7 +24,7 @@ namespace NextAdmin.API.Extensions.Json
                 var str = reader.GetString();
                 if (string.IsNullOrWhiteSpace(str)) return default;
 
-                // 优先尝试精确格式，其次尝试多种常见格式与通用解析
+                // Try exact format first, then try various common formats and general parsing
                 if (DateTime.TryParseExact(str, _format, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var dt))
                     return dt;
 
@@ -32,7 +32,7 @@ namespace NextAdmin.API.Extensions.Json
                     return dt;
             }
 
-            // 退回默认
+            // Fallback to default
             return reader.GetDateTime();
         }
 
@@ -44,7 +44,7 @@ namespace NextAdmin.API.Extensions.Json
     }
 
     /// <summary>
-    /// 可空 DateTime 的转换器。
+    /// Converter for nullable DateTime.
     /// </summary>
     public sealed class NullableDateTimeConverter : JsonConverter<DateTime?>
     {

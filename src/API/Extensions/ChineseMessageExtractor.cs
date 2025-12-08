@@ -10,9 +10,9 @@ namespace NextAdmin.API.Extensions
 
         public static string Extract(Exception ex)
         {
-            if (ex == null) return "系统内部错误";
+            if (ex == null) return "System internal error";
 
-            // 组合多层异常消息
+            // Combine multi-level exception messages
             var raw = FlattenExceptionMessage(ex);
 
             var segments = ChineseBlockRegex.Matches(raw)
@@ -21,7 +21,7 @@ namespace NextAdmin.API.Extensions
                 .Where(s => !string.IsNullOrWhiteSpace(s));
 
             var text = string.Join("", segments);
-            return string.IsNullOrWhiteSpace(text) ? "操作失败,请检测提交的数据是否符合规范或名称等是否重复" : text;
+            return string.IsNullOrWhiteSpace(text) ? "Operation failed, please check if the submitted data is valid or if names are duplicated" : text;
         }
 
         private static string FlattenExceptionMessage(Exception ex)

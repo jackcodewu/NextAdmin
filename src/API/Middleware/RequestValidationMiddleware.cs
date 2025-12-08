@@ -18,40 +18,40 @@ namespace NextAdmin.API.Middleware
         {
             try
             {
-                // 验证请求体大小
+                // Validate request body size
                 if (context.Request.ContentLength > 10 * 1024 * 1024) // 10MB
                 {
                     context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
                     await context.Response.WriteAsJsonAsync(new
                     {
                         Code = "413",
-                        Message = "请求体过大",
+                        Message = "Request body too large",
                         Data = (object?)null
                     });
                     return;
                 }
 
-                // 验证请求方法
+                // Validate request method
                 if (!IsValidHttpMethod(context.Request.Method))
                 {
                     context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
                     await context.Response.WriteAsJsonAsync(new
                     {
                         Code = "405",
-                        Message = "不支持的HTTP方法",
+                        Message = "Unsupported HTTP method",
                         Data = (object?)null
                     });
                     return;
                 }
 
-                // 验证Content-Type
+                // Validate Content-Type
                 if (context.Request.Method != "GET" && !IsValidContentType(context.Request.ContentType))
                 {
                     context.Response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
                     await context.Response.WriteAsJsonAsync(new
                     {
                         Code = "415",
-                        Message = "不支持的Content-Type",
+                        Message = "Unsupported Content-Type",
                         Data = (object?)null
                     });
                     return;
@@ -61,12 +61,12 @@ namespace NextAdmin.API.Middleware
             }
             catch (Exception ex)
             {
-                LogHelper.Error(ex, "请求验证中间件发生错误");
+                LogHelper.Error(ex, "Error occurred in request validation middleware");
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 await context.Response.WriteAsJsonAsync(new
                 {
                     Code = "500",
-                    Message = "服务器内部错误",
+                    Message = "Internal server error",
                     Data = (object?)null
                 });
             }

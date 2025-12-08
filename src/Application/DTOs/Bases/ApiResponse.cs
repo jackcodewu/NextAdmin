@@ -3,38 +3,38 @@ using System.Text.Json.Serialization;
 namespace NextAdmin.Application.DTOs
 { 
     /// <summary>
-    /// API响应模型
+    /// API response model
     /// </summary>
     public class ApiResponse<T>
     {
         /// <summary>
-        /// 是否成功
+        /// Is successful
         /// </summary>
         [JsonPropertyName("success")]
         public bool Success { get; set; }
 
         /// <summary>
-        /// 响应码
+        /// Response code
         /// </summary>
         [JsonPropertyName("code")]
         public string Code { get; set; } = "200";
 
         /// <summary>
-        /// 响应消息
+        /// Response message
         /// </summary>
         [JsonPropertyName("message")]
         public string Message { get; set; }
 
         /// <summary>
-        /// 响应数据
+        /// Response data
         /// </summary>
         [JsonPropertyName("data")]
         public T Data { get; set; }
 
         /// <summary>
-        /// 创建成功响应
+        /// Create success response
         /// </summary>
-        public static ApiResponse<T> SuccessResponse(T data, string message = "操作成功")
+        public static ApiResponse<T> SuccessResponse(T data, string message = "Operation successful")
         {
             return new ApiResponse<T>
             {
@@ -45,7 +45,7 @@ namespace NextAdmin.Application.DTOs
             };
         }      
         /// <summary>
-        /// 创建失败响应
+        /// Create error response
         /// </summary>
         public static ApiResponse<T> ErrorResponse(string code, string message, T data = default)
         {
@@ -61,7 +61,7 @@ namespace NextAdmin.Application.DTOs
 
     public class ApiResponse : ApiResponse<string>
     {
-        public static ApiResponse SuccessResponse(string message = "操作成功")
+        public static ApiResponse SuccessResponse(string message = "Operation successful")
         {
             return new ApiResponse
             {
@@ -72,7 +72,7 @@ namespace NextAdmin.Application.DTOs
             };
         }
 
-        public static ApiResponse ErrorResponse(string code, string message="操作失败")
+        public static ApiResponse ErrorResponse(string code, string message="Operation failed")
         {
             return new ApiResponse
             {

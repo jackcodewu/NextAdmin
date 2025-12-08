@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace NextAdmin.Infrastructure.Repositories
 {
     /// <summary>
-    /// 菜单仓储
+    /// Menu repository
     /// </summary>
     public class MenuRepository : BaseRepository<Menu>, IMenuRepository
     {
@@ -26,46 +26,46 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 创建菜单相关索引
+        /// Create menu-related indexes
         /// </summary>
         private void CreateIndexes()
         {
             
-            // 菜单路径索引（用于路由查询）
+            // Menu path index (for routing queries)
             Collection.Indexes.CreateOne(new CreateIndexModel<Menu>(
                 Builders<Menu>.IndexKeys.Ascending(x => x.Path)));
             
-            // 菜单标题索引（用于查询）
+            // Menu title index (for queries)
             Collection.Indexes.CreateOne(new CreateIndexModel<Menu>(
                 Builders<Menu>.IndexKeys.Ascending(x => x.Title)));
             
-            // 父级菜单ID索引（用于层级查询）
+            // Parent menu ID index (for hierarchical queries)
             Collection.Indexes.CreateOne(new CreateIndexModel<Menu>(
                 Builders<Menu>.IndexKeys.Ascending(x => x.ParentId)));
             
-            // 排序索引（用于菜单排序）
+            // Sort index (for menu sorting)
             Collection.Indexes.CreateOne(new CreateIndexModel<Menu>(
                 Builders<Menu>.IndexKeys.Ascending(x => x.Sort)));
             
-            // 是否隐藏索引（用于过滤）
+            // Is hidden index (for filtering)
             Collection.Indexes.CreateOne(new CreateIndexModel<Menu>(
                 Builders<Menu>.IndexKeys.Ascending(x => x.IsHide)));
             
         }
 
         /// <summary>
-        /// 递归排序菜单树
+        /// Recursively sort menu tree
         /// </summary>
-        /// <param name="menus">菜单列表</param>
+        /// <param name="menus">Menu list</param>
         private void SortMenuTree(List<Menu> menus)
         {
             if (menus == null || !menus.Any())
                 return;
 
-            // 按 Sort 字段升序排序当前层级
+            // Sort current level in ascending order by Sort field
             menus.Sort((a, b) => a.Sort.CompareTo(b.Sort));
 
-            // 递归排序子菜单
+            // Recursively sort child menus
             foreach (var menu in menus)
             {
                 if (menu.Children != null && menu.Children.Any())

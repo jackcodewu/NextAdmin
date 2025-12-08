@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace NextAdmin.Infrastructure.Repositories
 {
     /// <summary>
-    /// 权限仓储
+    /// Permission repository
     /// </summary>
     public class PermissionRepository : BaseRepository<Permission>, IPermissionRepository
     {
@@ -19,24 +19,24 @@ namespace NextAdmin.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 创建权限相关索引
+        /// Create permission-related indexes
         /// </summary>
         private void CreateIndexes()
         {
-            // 权限代码唯一索引（防止重复）
+            // Permission code unique index (prevent duplication)
             Collection.Indexes.CreateOne(new CreateIndexModel<Permission>(
                 Builders<Permission>.IndexKeys.Ascending(x => x.Code), 
                 new CreateIndexOptions { Unique = true }));            
             
-            // 权限中文名称索引（用于查询）
+            // Permission Chinese name index (for queries)
             Collection.Indexes.CreateOne(new CreateIndexModel<Permission>(
                 Builders<Permission>.IndexKeys.Ascending(x => x.CnName)));
             
-            // 父级权限ID索引（用于层级查询）
+            // Parent permission ID index (for hierarchical queries)
             Collection.Indexes.CreateOne(new CreateIndexModel<Permission>(
                 Builders<Permission>.IndexKeys.Ascending(x => x.ParentId)));
             
-            // 是否启用索引（用于过滤）
+            // Is enabled index (for filtering)
             Collection.Indexes.CreateOne(new CreateIndexModel<Permission>(
                 Builders<Permission>.IndexKeys.Ascending(x => x.IsEnabled)));
             

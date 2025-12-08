@@ -5,12 +5,12 @@ using System.Collections.Generic;
 namespace NextAdmin.Common.Helpers
 {
     /// <summary>
-    /// 日志帮助类
+    /// Log helper class
     /// </summary>
     public static class LogHelper
     {
         /// <summary>
-        /// 记录信息日志
+        /// Log information message
         /// </summary>
         public static void LogInformation(ILogger logger, string message, Dictionary<string, object> data = null)
         {
@@ -19,7 +19,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 记录警告日志
+        /// Log warning message
         /// </summary>
         public static void LogWarning(ILogger logger, string message, Dictionary<string, object> data = null)
         {
@@ -28,7 +28,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 记录错误日志
+        /// Log error message
         /// </summary>
         public static void LogError(ILogger logger, Exception ex, string message, Dictionary<string, object> data = null)
         {
@@ -37,7 +37,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 记录调试日志
+        /// Log debug message
         /// </summary>
         public static void LogDebug(ILogger logger, string message, Dictionary<string, object> data = null)
         {
@@ -46,7 +46,7 @@ namespace NextAdmin.Common.Helpers
         }
 
         /// <summary>
-        /// 格式化日志消息
+        /// Format log message
         /// </summary>
         private static string FormatMessage(string message, Dictionary<string, object> data)
         {

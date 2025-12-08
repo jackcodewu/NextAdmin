@@ -6,17 +6,17 @@ namespace NextAdmin.API.Models.Auth
         public string Password { get; set; }
 
         /// <summary>
-        /// 滑动验证码Token
+        /// Sliding captcha token
         /// </summary>
         public string? CaptchaToken { get; set; }
 
         /// <summary>
-        /// 滑块最终X坐标
+        /// Slider final X coordinate
         /// </summary>
         public int? CaptchaX { get; set; }
 
         /// <summary>
-        /// 滑动轨迹（可选）
+        /// Sliding track (optional)
         /// </summary>
         public List<int>? CaptchaTrack { get; set; }
     }

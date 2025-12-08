@@ -3,7 +3,7 @@ using System;
 namespace NextAdmin.API.Models
 {
     /// <summary>
-    /// 能耗查询请求
+    /// Energy query request
     /// </summary>
     public class EnergyQueryRequest
     {
@@ -16,7 +16,7 @@ namespace NextAdmin.API.Models
     }
 
     /// <summary>
-    /// 电费分析请求
+    /// Energy cost analysis request
     /// </summary>
     public class EnergyCostRequest
     {
@@ -26,7 +26,7 @@ namespace NextAdmin.API.Models
     }
 
     /// <summary>
-    /// 能耗对比请求（EnergyReportController专用）
+    /// Energy comparison request (EnergyReportController specific)
     /// </summary>
     public class EnergyReportComparisonRequest
     {
